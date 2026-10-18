@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{#-
+  About page: the section's Markdown on top, then a team section at the bottom with a card
+  for every person, grouped like https://bevy.org/community/people/.
+
+    content/about/_index.md                  template = "about.html"
+    content/about/team/_index.md             title, intro (Markdown body) and the role legend
+    content/about/team/founders/_index.md    one group (weight orders the groups)
+    content/about/team/founders/someone.md   one person (weight orders the people)
+
+  [extra] on about/_index.md:
+    team_section = "about/team/_index.md"   where the groups live (this is the default)
+    show_toc = false
+-#}
+
+{% block body_class %}{% endblock body_class %}
+{% block main_class %} about-main{% endblock main_class %}
+
+{% block main %}
+{%- set x = config.extra -%}
+{%- set e = section.extra -%}
+{%- set show_toc = e.show_toc if e.show_toc is defined else x.show_toc -%}
+{%- set toc_open = e.toc_open if e.toc_open is defined else x.toc_open -%}
+{%- set team_path = e.team_section if e.team_section is defined and e.team_section else (section.relative_path | replace(from="_index.md", to="team/_index.md")) -%}
+{%- set team = get_section(path=team_path, allow_missing=true) -%}
+<article class="post-single about">
+  <header class="post-header">
+    <h1 class="post-title">{{ section.title }}</h1>
+    {%- if section.description %}
+    <div class="post-description">{{ section.description | markdown(inline=true) | safe }}</div>
+    {%- endif %}
+  </header>
+
+  {%- if show_toc %}{{ <toc items={section.toc} open={toc_open} /> }}{% endif %}
+
+  {%- if section.content %}
+  <div class="post-content md-content">
+    {{ section.content | safe }}
+  </div>
+  {%- endif %}
+
+  {%- if team and team.subsections %}
+  {%- set roles = team.extra.roles if team.extra.roles is defined else [] %}
+  {%- set tid = team.extra.anchor if team.extra.anchor is defined and team.extra.anchor else team.title | slugify %}
+  <section class="team" id="{{ tid }}" aria-labelledby="{{ tid }}-title">
+    <header class="team__header">
+      <h2 class="team__title" id="{{ tid }}-title">
+        {{- team.title -}}
+        <a class="anchor" href="#{{ tid }}" title="Copy link to {{ team.title }}" aria-label="Copy link to {{ team.title }}">#</a>
+      </h2>
+      {%- if team.content | striptags | trim %}
+      <div class="team__intro md-content">{{ team.content | safe }}</div>
+      {%- elif team.description %}
+      <p class="team__intro">{{ team.description | markdown(inline=true) | safe }}</p>
+      {%- endif %}
+    </header>
+
+    {#- Role legend, like Bevy's "Roles" list. Only roles with a description are listed. -#}
+    {%- set described = [r for r in roles if r.description is defined and r.description] %}
+    {%- if described %}
+    <dl class="team-legend">
+      {%- for r in described %}
+      <div class="team-legend__row">
+        <dt>{{ <team_role role={r.label if r.label is defined else r.name} roles={roles} big={true} /> }}</dt>
+        <dd>{{ r.description | markdown(inline=true) | safe }}</dd>
+      </div>
+      {%- endfor %}
+    </dl>
+    {%- endif %}
+
+    {#- Jump links to each group with people in it (Bevy shows these in a side menu). -#}
+    {%- set_global jump = [] %}
+    {%- for sub in team.subsections %}
+      {%- set g = get_section(path=sub) %}
+      {%- set_global n = g.pages | length %}
+      {%- for s2 in g.subsections %}{% set g2 = get_section(path=s2) %}{% set_global n = n + (g2.pages | length) %}{% endfor %}
+      {%- if n > 0 %}
+        {%- set_global jump = [...jump, [g.title, g.extra.anchor if g.extra.anchor is defined and g.extra.anchor else g.title | slugify, n]] %}
+      {%- endif %}
+    {%- endfor %}
+    {%- if jump | length > 1 %}
+    <nav class="team-nav" aria-label="Team groups">
+      {%- for j in jump %}
+      <a class="pm-chip" href="#{{ j[1] }}">{{ j[0] }} <span class="count">{{ j[2] }}</span></a>
+      {%- endfor %}
+    </nav>
+    {%- endif %}
+
+    {%- for sub in team.subsections %}
+    {{ <team_group path={sub} roles={roles} /> }}
+    {%- endfor %}
+  </section>
+  {%- endif %}
+</article>
+{% endblock main %}
+
+{% block scripts %}
+<script src="{{ get_url(path='js/team.js') }}" defer></script>
+{% endblock scripts %}

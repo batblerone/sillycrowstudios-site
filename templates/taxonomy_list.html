@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block main %}
+<header class="page-header">
+  <h1>{{ taxonomy.name | capitalize }}</h1>
+</header>
+<ul class="terms-tags">
+  {%- for t in terms %}
+  <li>
+    <a href="{{ t.permalink }}">{{ t.name }} <sup><strong><sup>{{ t.page_count }}</sup></strong></sup></a>
+  </li>
+  {%- endfor %}
+</ul>
+{% endblock main %}

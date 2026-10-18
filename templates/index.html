@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- set x = config.extra -%}
+{%- if x.profile_mode.enabled %}
+  {%- set pm = x.profile_mode %}
+<div class="profile">
+  <div class="profile_inner">
+    {%- if pm.image_url %}
+    <img draggable="false" src="{{ pm.image_url if pm.image_url is starting_with(pat='http') else get_url(path=pm.image_url) }}"
+      alt="{{ pm.image_title or 'profile image' }}" title="{{ pm.image_title }}" height="{{ pm.image_size }}" width="{{ pm.image_size }}" />
+    {%- endif %}
+    <h1>{{ (pm.title or config.title) | markdown(inline=true) | safe }}</h1>
+    <span>{{ pm.subtitle | markdown(inline=true) | safe }}</span>
+    {{ <social_icons icons={x.social_icons} /> }}
+    {%- if pm.buttons %}
+    <div class="buttons">
+      {%- for b in pm.buttons %}
+      <a class="button" href="{{ b.url | trim }}" rel="noopener" title="{{ b.name }}">
+        <span class="button-inner">{{ b.name }}</span>
+      </a>
+      {%- endfor %}
+    </div>
+    {%- endif %}
+  </div>
+</div>
+{%- else %}
+  {%- if x.home_info.title or x.home_info.content %}
+<article class="first-entry home-info">
+  <header class="entry-header">
+    <h1>{{ x.home_info.title | markdown(inline=true) | safe }}</h1>
+  </header>
+  <div class="entry-content md-content">
+    {{ x.home_info.content | markdown | safe }}
+  </div>
+  <footer class="entry-footer">
+    {{ <social_icons icons={x.social_icons} /> }}
+  </footer>
+</article>
+  {%- endif %}
+
+  {%- if section.content %}
+<div class="post-content md-content">{{ section.content | safe }}</div>
+  {%- endif %}
+
+  {#- Gather pages from every main section and sort newest first -#}
+  {%- set_global home_pages = [] %}
+  {%- for s in x.main_sections %}
+    {%- set ms = get_section(path=s ~ "/_index.md", allow_missing=true) %}
+    {%- if ms %}{% set_global home_pages = [...home_pages, ...[p for p in ms.pages if p.date and not p.extra.hidden_in_home_list]] %}{% endif %}
+  {%- endfor %}
+  {%- set home_pages = (home_pages | sort(attribute="date") | reverse)[:x.home_post_count] %}
+  {%- set special_first = not (x.disable_special_1st_post or x.home_info.title or x.home_info.content) %}
+  {%- for p in home_pages %}
+    {{ <post_entry p={p} cls={"first-entry" if (loop.first and special_first) else "post-entry"} /> }}
+  {%- endfor %}
+
+  {%- set blog = get_section(path=x.blog.section, metadata_only=true, allow_missing=true) %}
+  {%- if blog %}
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="next" href="{{ blog.permalink }}">All posts&nbsp;»</a>
+  </nav>
+</footer>
+  {%- endif %}
+{%- endif %}
+{% endblock main %}

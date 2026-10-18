@@ -1,0 +1,67 @@
+{#-
+  Replacements for PaperMod's Hugo shortcodes. Use them in Markdown like:
+
+    {{ <figure src="cat.jpg" caption="A cat" align="center" /> }}
+    {% <collapse summary="Click to expand"> %} hidden **markdown** {% </collapse> %}
+    {{ <video src="clip.mp4" /> }}   {{ <audio src="song.mp3" /> }}
+    {{ <youtube id="dQw4w9WgXcQ" /> }}
+-#}
+
+{% component figure(src: string, alt: string = "", caption: string = "", title: string = "", attr: string = "", attrlink: string = "", link: string = "", target: string = "", align: string = "", width: string = "", height: string = "", class: string = "", loading: string = "lazy") -%}
+<figure{% if class or align %} class="{{ class }}{% if align == 'center' %} align-center{% endif %}"{% endif %}>
+  {%- if link %}<a href="{{ link }}"{% if target %} target="{{ target }}"{% endif %}>{% endif %}
+  <img loading="{{ loading }}" src="{{ src }}" alt="{{ alt or caption | striptags }}"{% if width %} width="{{ width }}"{% endif %}{% if height %} height="{{ height }}"{% endif %}>
+  {%- if link %}</a>{% endif %}
+  {%- if title or caption or attr %}
+  <figcaption>
+    {%- if title %}{{ title }}{% endif %}
+    {%- if caption or attr %}<p>
+      {{- caption | markdown(inline=true) | safe -}}
+      {%- if attrlink %}<a href="{{ attrlink }}">{% endif %}{{ attr | markdown(inline=true) | safe }}{% if attrlink %}</a>{% endif %}
+    </p>{%- endif %}
+  </figcaption>
+  {%- endif %}
+</figure>
+{%- endcomponent figure %}
+
+{% component collapse(summary: string, open: bool = false) -%}
+<p><details{% if open %} open{% endif %}>
+  <summary>{{ summary | markdown(inline=true) | safe }}</summary>
+  {{ body | markdown | safe }}
+</details></p>
+{%- endcomponent collapse %}
+
+{% component video(src: string, type: string = "", preload: string = "metadata", autoplay: bool = false, loop: bool = false, muted: bool = false) -%}
+<video controls preload="{{ preload }}"{% if autoplay %} autoplay{% endif %}{% if loop %} loop{% endif %}{% if muted %} muted{% endif %}>
+  <source src="{{ src }}"{% if type %} type="{{ type }}"{% endif %}>
+  Your browser does not support the video tag.
+</video>
+{%- endcomponent video %}
+
+{% component audio(src: string, type: string = "", preload: string = "metadata") -%}
+<audio controls preload="{{ preload }}">
+  <source src="{{ src }}"{% if type %} type="{{ type }}"{% endif %}>
+  Your browser does not support the audio element.
+</audio>
+{%- endcomponent audio %}
+
+{% component youtube(id: string, start: integer = 0, title: string = "YouTube video") -%}
+<div class="video-embed">
+  <iframe src="https://www.youtube-nocookie.com/embed/{{ id }}{% if start %}?start={{ start }}{% endif %}" title="{{ title }}"
+    loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+{%- endcomponent youtube %}
+
+{#- Inline image inside a paragraph (PaperMod's inTextImg) -#}
+{% component in_text_img(url: string, alt: string = "", height: integer = 0) -%}
+<img src="{{ url }}" alt="{{ alt }}" class="in-text"{% if height %} style="height: {{ height }}px"{% endif %}>
+{%- endcomponent in_text_img %}
+
+{#- Link card to a project (or any page). get_page() isn't available while Markdown is rendered, so pass the title:
+    {{ <project_link path="@/projects/games/orb-dodger/index.md" title="Orb Dodger" text="Play it in your browser" /> }} -#}
+{% component project_link(path: string, title: string, text: string = "") -%}
+<a class="project-inline-card" href="{{ get_url(path=path) }}">
+  <strong>▶ {{ title }}</strong>
+  {%- if text %}<span>{{ text }}</span>{% endif %}
+</a>
+{%- endcomponent project_link %}

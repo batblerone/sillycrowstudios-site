@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block main %}
+{%- set x = config.extra -%}
+<header class="page-header">
+  <h1>
+    {{ term.name }}
+    {%- if taxonomy.feed and x.show_rss_button_in_section_term_list %}
+    {{ <rss_button href={term.permalink ~ config.feed_filenames[0]} /> }}
+    {%- endif %}
+  </h1>
+  <div class="post-description">
+    {{ term.page_count }} post{{ term.page_count | pluralize }} in
+    <a href="{{ get_url(path='/' ~ taxonomy.slug ~ '/', trailing_slash=true) }}">{{ taxonomy.name }}</a>
+  </div>
+</header>
+{%- set items = paginator.pages if paginator is defined and paginator else term.pages %}
+{%- for p in items %}
+{{ <post_entry p={p} cls="post-entry tag-entry" /> }}
+{%- endfor %}
+{%- if paginator is defined and paginator %}{{ <pager paginator={paginator} show_nums={true} /> }}{% endif %}
+{% endblock main %}

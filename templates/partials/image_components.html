@@ -1,0 +1,103 @@
+{#-
+  Images you can put anywhere: in Markdown, in templates, or as a page's hero banner.
+
+  In Markdown (on its own line):
+
+    {{ <image src="crow.png" alt="A crow" /> }}
+    {{ <image src="crow.png" position="right" width="40%" caption="Floats right, text wraps" /> }}
+    {{ <image src="sky.jpg" position="full" height="320px" focus="center 30%" title="Big banner" text="With *Markdown*" /> }}
+
+  src         "crow.png"            file next to the page (page bundle folder, or same folder as the .md)
+              "/images/crow.png"    file in static/
+              "@/blog/x/crow.png"   any file in content/
+              "https://…"           remote image (used as-is, not resized)
+  position    center (default) · left · right (float, text wraps) · wide (wider than the text)
+              · full (edge to edge) · inline (sits in a line of text) · hero (used by the page banner)
+  width       any CSS width: "300px", "40%"  (left/right default to 45%)
+  height      crop to a height: "320px", "40vh", or short · medium · tall · screen
+  focus       which part stays in view when cropped: "center", "top", "center 30%", "left bottom"
+  alt, caption, credit, link (makes the image a link)
+  title, text overlay text (text takes inline Markdown); align = left|center|right, valign = top|center|bottom
+  overlay     darkness behind overlay text, "0" to "1" (default 0.4 when there's text)
+  rounded     true (default) / false      shadow  false (default) / true
+  eager       true to load immediately (hero images do this automatically)
+  class, id   extra hooks for your own CSS
+-#}
+
+{% component image(src: string, alt: string = "", position: string = "center", width: string = "", height: string = "", focus: string = "", caption: string = "", credit: string = "", link: string = "", title: string = "", text: string = "", align: string = "", valign: string = "", overlay: string = "", rounded: bool = true, shadow: bool = false, eager: bool = false, class: string = "", id: string = "", @page = none, @section = none) -%}
+{%- set cur = page or section -%}
+{%- set pos = position | lower | trim -%}
+{%- set remote = src is starting_with(pat="http://") or src is starting_with(pat="https://") or src is starting_with(pat="//") -%}
+{#- ---- Work out where the file lives (a path that resize_image understands) ---- -#}
+{%- set_global path = "" -%}
+{%- set_global in_static = false -%}
+{%- if not remote -%}
+  {%- if src is starting_with(pat="@/") -%}
+    {%- set_global path = src | trim_start(pat="@/") -%}
+  {%- elif src is starting_with(pat="/") -%}
+    {%- set_global path = src | trim_start(pat="/") -%}
+    {%- set_global in_static = true -%}
+  {%- else -%}
+    {%- set candidates = [] -%}
+    {%- if cur and cur.colocated_path is defined and cur.colocated_path -%}{%- set candidates = [...candidates, cur.colocated_path ~ src] -%}{%- endif -%}
+    {%- if cur and cur.relative_path is defined -%}{%- set candidates = [...candidates, (cur.relative_path | regex_replace(pattern=`[^/]+$`, rep=``)) ~ src] -%}{%- endif -%}
+    {%- set candidates = [...candidates, src] -%}
+    {%- for c in candidates -%}
+      {%- if not path and get_image_metadata(path=c, allow_missing=true) -%}{%- set_global path = c -%}{%- set_global in_static = loop.last -%}{%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+  {%- if not path or not get_image_metadata(path=path, allow_missing=true) -%}
+    {{- throw(message="image: can't find '" ~ src ~ "'" ~ (" (from " ~ cur.relative_path ~ ")" if cur else "") ~ ". Use a file next to the page, /path/in/static, @/path/in/content or a URL.") -}}
+  {%- endif -%}
+{%- endif -%}
+{#- ---- Build src / srcset ---- -#}
+{%- set_global img_src = src -%}
+{%- set_global srcset = "" -%}
+{%- set_global img_w = 0 -%}
+{%- set_global img_h = 0 -%}
+{%- if not remote -%}
+  {%- set meta = get_image_metadata(path=path) -%}
+  {%- set fmt = meta.format | lower -%}
+  {%- if fmt == "svg" or fmt == "gif" -%}
+    {#- Vectors and (possibly animated) GIFs are served untouched -#}
+    {%- set_global img_src = get_url(path=path if in_static else "@/" ~ path) -%}
+    {%- set_global img_w = meta.width or 0 -%}{%- set_global img_h = meta.height or 0 -%}
+  {%- else -%}
+    {%- set max_w = [meta.width, 2400] | sort | first -%}
+    {%- set widths = [w for w in [480, 800, 1200, 1600, 2000] if w < max_w] -%}
+    {%- set parts = [] -%}
+    {%- for w in [...widths, max_w] -%}
+      {%- set r = resize_image(path=path, width=w, op="fit_width") -%}
+      {%- set_global parts = [...parts, r.url ~ " " ~ w ~ "w"] -%}
+      {%- if loop.last -%}{%- set_global img_src = r.url -%}{%- set_global img_w = r.width -%}{%- set_global img_h = r.height -%}{%- endif -%}
+    {%- endfor -%}
+    {%- set_global srcset = parts | join(sep=", ") -%}
+  {%- endif -%}
+{%- endif -%}
+{#- ---- Layout ---- -#}
+{%- set sizes = "100vw" if pos in ["full", "hero"] else ("(min-width: 1100px) 1100px, 100vw" if pos == "wide" else ("(min-width: 768px) 45vw, 100vw" if pos in ["left", "right"] else "(min-width: 768px) 720px, 100vw")) -%}
+{%- set presets = {"short": "clamp(180px, 28vh, 280px)", "medium": "clamp(260px, 42vh, 460px)", "tall": "clamp(340px, 62vh, 680px)", "screen": "calc(100vh - var(--header-height))"} -%}
+{%- set h = presets[height] if height in presets else height -%}
+{%- set has_text = title or text -%}
+{%- set ov = overlay if overlay else ("0.4" if has_text else "") -%}
+{%- set styles = [] -%}
+{%- if width -%}{%- set styles = [...styles, "--img-width: " ~ width] -%}{%- endif -%}
+{%- if h -%}{%- set styles = [...styles, "--img-height: " ~ h] -%}{%- endif -%}
+{%- if focus -%}{%- set styles = [...styles, "--img-focus: " ~ focus] -%}{%- endif -%}
+{%- if ov -%}{%- set styles = [...styles, "--img-overlay: " ~ ov] -%}{%- endif -%}
+{%- set classes = ["sc-image", "sc-image--" ~ pos] -%}
+{%- if h and pos != "inline" -%}{%- set classes = [...classes, "is-cropped"] -%}{%- endif -%}
+{%- if has_text -%}{%- set classes = [...classes, "has-text", "text-" ~ (align or ("left" if pos == "hero" else "center")), "text-v-" ~ (valign or ("bottom" if pos == "hero" else "center"))] -%}{%- endif -%}
+{%- if rounded and pos not in ["full", "hero"] -%}{%- set classes = [...classes, "is-rounded"] -%}{%- endif -%}
+{%- if shadow -%}{%- set classes = [...classes, "has-shadow"] -%}{%- endif -%}
+{%- if class -%}{%- set classes = [...classes, class] -%}{%- endif -%}
+{%- set tag = "span" if pos == "inline" else "figure" -%}
+<{{ tag }} class="{{ classes | join(sep=' ') }}"{% if id %} id="{{ id }}"{% endif %}{% if styles %} style="{{ styles | join(sep='; ') }}"{% endif %}>
+{%- if link %}<a class="sc-image__frame" href="{{ link }}"{% if link is starting_with(pat="http") %} target="_blank" rel="noopener noreferrer"{% endif %}>{% else %}<{{ "span" if pos == "inline" else "div" }} class="sc-image__frame">{% endif -%}
+<img src="{{ img_src }}"{% if srcset %} srcset="{{ srcset }}" sizes="{{ sizes }}"{% endif %}{% if img_w %} width="{{ img_w }}" height="{{ img_h }}"{% endif %} alt="{{ (alt or title or caption) | striptags }}"{% if eager or pos == "hero" %} fetchpriority="high"{% else %} loading="lazy"{% endif %} decoding="async">
+{%- if has_text %}<span class="sc-image__text">{% if title %}<span class="sc-image__title">{{ title | markdown(inline=true) | safe }}</span>{% endif %}{% if text %}<span class="sc-image__sub">{{ text | markdown(inline=true) | safe }}</span>{% endif %}</span>{% endif -%}
+{%- if credit and pos == "hero" %}<span class="sc-image__credit">{{ credit | markdown(inline=true) | safe }}</span>{% endif -%}
+{%- if link %}</a>{% else %}</{{ "span" if pos == "inline" else "div" }}>{% endif -%}
+{%- if (caption or credit) and pos not in ["hero", "inline"] %}<figcaption>{{ caption | markdown(inline=true) | safe }}{% if credit %}<span class="sc-image__credit-line">{{ credit | markdown(inline=true) | safe }}</span>{% endif %}</figcaption>{% endif -%}
+</{{ tag }}>
+{%- endcomponent image %}

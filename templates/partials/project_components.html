@@ -1,0 +1,90 @@
+{#- Components for the projects gallery (projects.html / project.html). -#}
+
+{#- Card used in the projects grid, modelled on bevy.org's example cards. -#}
+{% component project_card(p: map, @config) -%}
+{%- set px = config.extra.projects -%}
+{%- set e = p.extra -%}
+{%- set renderer = e.renderer if e.renderer is defined else px.default_renderer -%}
+{%- set has_game = e.wasm is defined and e.wasm -%}
+{%- set tags = p.taxonomies.tags if p.taxonomies.tags is defined else [] -%}
+<div class="project-cell" data-project
+  data-title="{{ p.title }}"
+  data-renderer="{{ renderer if has_game else 'none' }}"
+  data-search="{{ (p.title ~ ' ' ~ (p.description or '') ~ ' ' ~ (tags | join(sep=' '))) | lower }}">
+  <a class="project-card" href="{{ p.permalink }}">
+    <div class="project-card__banner">
+      {%- set img = e.image if e.image is defined else "" %}
+      {%- if img and img is starting_with(pat="http") %}
+      <img src="{{ img }}" alt="" loading="lazy">
+      {%- elif img %}
+        {%- set src_path = (p.colocated_path ~ img) if p.colocated_path else (img | trim_start(pat="/")) %}
+        {%- set meta = get_image_metadata(path=src_path, allow_missing=true) %}
+        {%- if meta and meta.format != "svg" %}
+          {%- set thumb = resize_image(path=src_path, width=px.thumb_width, height=px.thumb_height, op="fill") %}
+      <img src="{{ thumb.url }}" width="{{ thumb.width }}" height="{{ thumb.height }}" alt="" loading="lazy">
+        {%- elif meta %}
+      <img src="{{ get_url(path='@/' ~ src_path if p.colocated_path else src_path) }}" alt="" loading="lazy">
+        {%- endif %}
+      {%- else %}
+        {%- set h = get_hash(literal=p.title, sha_type=256, base64=false) %}
+        {%- set hue = (h[:2] | int(base=16)) * 360 // 255 %}
+      <div class="project-card__placeholder" style="--hue: {{ hue }}" aria-hidden="true">
+        <span>{{ p.title[:1] | upper }}</span>
+      </div>
+      {%- endif %}
+      {%- if has_game %}
+      <span class="project-badge project-badge--{{ renderer }}">{{ "WebGPU" if renderer == "webgpu" else "WebGL2" }}</span>
+      <span class="project-card__play" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </span>
+      {%- endif %}
+    </div>
+    <div class="project-card__body">
+      <h3 class="project-card__title">{{ p.title }}</h3>
+      {%- if p.description %}
+      <p class="project-card__desc">{{ p.description }}</p>
+      {%- endif %}
+      <div class="project-card__tags">
+        {%- if e.bevy_version is defined %}<span class="project-tag" title="Bevy version">Bevy {{ e.bevy_version }}</span>{% endif %}
+        {%- for t in tags[:4] %}<span class="project-tag">{{ t }}</span>{% endfor %}
+      </div>
+    </div>
+  </a>
+</div>
+{%- endcomponent project_card %}
+
+
+{#- Sidebar category tree (recursive) -#}
+{% component project_menu(paths: array) -%}
+<ul class="project-menu">
+  {%- for path in paths %}
+  {%- set s = get_section(path=path) %}
+  <li>
+    <a href="#{{ s.title | slugify }}" data-menu-link="{{ s.title | slugify }}">
+      <span>{{ s.title }}</span><span class="count">{{ s.pages | length }}</span>
+    </a>
+    {%- if s.subsections %}{{ <project_menu paths={s.subsections} /> }}{% endif %}
+  </li>
+  {%- endfor %}
+</ul>
+{%- endcomponent project_menu %}
+
+
+{#- One category heading + its grid, then its own subcategories (recursive) -#}
+{% component project_group(path: string, level: integer = 2) -%}
+{%- set s = get_section(path=path) %}
+<section class="project-group" data-group id="{{ s.title | slugify }}">
+  <h{{ level }} class="project-group__title">
+    <a href="{{ s.permalink }}">{{ s.title }}</a>
+    <a class="anchor" href="#{{ s.title | slugify }}" aria-hidden="true">#</a>
+  </h{{ level }}>
+  {%- if s.description %}<p class="project-group__desc">{{ s.description }}</p>{% endif %}
+  {%- if s.pages %}
+  <div class="project-grid">
+    {%- set pages = s.pages | reverse if s.extra.reverse_order is defined and s.extra.reverse_order else s.pages %}
+    {%- for p in pages %}{{ <project_card p={p} /> }}{% endfor %}
+  </div>
+  {%- endif %}
+  {%- for sub in s.subsections %}{{ <project_group path={sub} level={[level + 1, 4] | sort | first} /> }}{% endfor %}
+</section>
+{%- endcomponent project_group %}

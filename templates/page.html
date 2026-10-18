@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block body_class %}{% endblock body_class %}
+
+{% block main %}
+{%- set x = config.extra -%}
+{%- set e = page.extra -%}
+{%- set show_breadcrumbs = e.show_breadcrumbs if e.show_breadcrumbs is defined else x.show_breadcrumbs -%}
+{%- set hide_meta = e.hide_meta if e.hide_meta is defined else x.hide_meta -%}
+{%- set show_toc = e.show_toc if e.show_toc is defined else x.show_toc -%}
+{%- set toc_open = e.toc_open if e.toc_open is defined else x.toc_open -%}
+{%- set show_nav = e.show_post_nav_links if e.show_post_nav_links is defined else x.show_post_nav_links -%}
+{%- set show_share = (e.show_share_buttons if e.show_share_buttons is defined else x.show_share_buttons) and not e.disable_share -%}
+{%- set comments = e.comments if e.comments is defined else x.comments -%}
+<article class="post-single">
+  <header class="post-header">
+    {%- if show_breadcrumbs and page.ancestors %}{{ <breadcrumbs ancestors={page.ancestors} /> }}{% endif %}
+    <h1 class="post-title entry-hint-parent">
+      {{ page.title }}
+      {%- if page.draft %}{{ <draft_hint size={35} /> }}{% endif %}
+    </h1>
+    {%- if page.description %}
+    <div class="post-description">{{ page.description }}</div>
+    {%- endif %}
+    {%- if not hide_meta %}
+    <div class="post-meta">
+      {{- <post_meta p={page} /> -}}
+      {%- if x.edit_post.url and not e.disable_edit_post %}
+      &nbsp;|&nbsp;<span><a href="{{ x.edit_post.url }}{% if x.edit_post.append_file_path %}/{{ page.relative_path }}{% endif %}" rel="noopener noreferrer edit" target="_blank">{{ x.edit_post.text }}</a></span>
+      {%- endif %}
+      {%- if e.canonical_url and e.show_canonical_link %}
+      &nbsp;|&nbsp;<span>Originally published at&nbsp;<a href="{{ e.canonical_url }}" target="_blank" rel="noopener noreferrer">{{ e.canonical_url | regex_replace(pattern=`^https?://([^/]+).*$`, rep=`$1`) }}</a></span>
+      {%- endif %}
+    </div>
+    {%- endif %}
+  </header>
+
+  {{ <cover p={page} single={true} /> }}
+
+  {%- if show_toc %}{{ <toc items={page.toc} open={toc_open} /> }}{% endif %}
+
+  {%- if page.content %}
+  <div class="post-content md-content">
+    {{ page.content | safe }}
+  </div>
+  {%- endif %}
+
+  {%- block after_content %}{% endblock after_content %}
+
+  <footer class="post-footer">
+    {%- set tags = page.taxonomies.tags if page.taxonomies.tags is defined else [] %}
+    {%- if tags %}
+    <ul class="post-tags">
+      {%- for t in tags %}
+      {%- if x.blog.tag_links_to_filter and x.blog.section in page.ancestors %}
+      <li><a href="{{ get_url(path='@/' ~ x.blog.section) }}?tags={{ t | urlencode_strict }}">{{ t }}</a></li>
+      {%- else %}
+      <li><a href="{{ get_taxonomy_url(kind='tags', term=t, lang=page.lang) }}">{{ t }}</a></li>
+      {%- endif %}
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+    {%- if show_nav and (page.higher or page.lower) %}
+    <nav class="paginav">
+      {%- if page.lower %}
+      <a class="prev" href="{{ page.lower.permalink }}">
+        <span class="title">« Prev</span>
+        <span>{{ page.lower.title }}</span>
+      </a>
+      {%- endif %}
+      {%- if page.higher %}
+      <a class="next" href="{{ page.higher.permalink }}">
+        <span class="title">Next »</span>
+        <span>{{ page.higher.title }}</span>
+      </a>
+      {%- endif %}
+    </nav>
+    {%- endif %}
+    {%- if show_share %}
+    {{ <share_buttons title={page.title} url={page.permalink} tags={tags} buttons={x.share_buttons} /> }}
+    {%- endif %}
+  </footer>
+
+  {%- if comments %}{% include "partials/comments.html" %}{% endif %}
+</article>
+{% endblock main %}

@@ -1,0 +1,59 @@
+name: CI
+
+# Checks that the site still builds before anything reaches main.
+# Pull requests opened by publish-game.yml are checked here too.
+
+on:
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+concurrency:
+  # Only the same workflows on the same branch can cancel each other.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  build-website:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: "Build website"
+        uses: shalzz/zola-deploy-action@v0.23.6
+        env:
+          PAGES_BRANCH: gh-pages
+          BUILD_DIR: .
+          BUILD_ONLY: true
+          TOKEN: fake-secret
+
+  check-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check shell scripts
+        run: shellcheck --severity=error tools/*.sh
+
+  # GitHub Pages rejects files over 100 MB, and big downloads hurt players.
+  check-game-sizes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check game file sizes
+        run: |
+          status=0
+          while IFS= read -r -d '' f; do
+            size=$(stat -c %s "$f")
+            if (( size > 100 * 1024 * 1024 )); then
+              echo "::error file=$f::$(( size / 1024 / 1024 )) MB is over GitHub's 100 MB file limit"
+              status=1
+            elif (( size > 50 * 1024 * 1024 )); then
+              echo "::warning file=$f::$(( size / 1024 / 1024 )) MB, consider trimming engine features or assets"
+            fi
+          done < <(find content static -type f -print0)
+          exit $status

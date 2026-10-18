@@ -1,0 +1,174 @@
+{#-
+  Reusable PaperMod components. Components are registered globally by Zola,
+  so they can be used from any template and from Markdown content.
+-#}
+
+
+{% component post_meta(p: map, @config) -%}
+{%- set x = config.extra -%}
+{%- set e = p.extra -%}
+{%- set parts = [] -%}
+{%- if p.date -%}
+  {%- set parts = [...parts, '<span title="' ~ p.date ~ '">' ~ (p.date | date(format=x.date_format)) ~ '</span>'] -%}
+{%- endif -%}
+{%- if (e.show_reading_time if e.show_reading_time is defined else x.show_reading_time) -%}
+  {%- set parts = [...parts, '<span>' ~ p.reading_time ~ ' min</span>'] -%}
+{%- endif -%}
+{%- if (e.show_word_count if e.show_word_count is defined else x.show_word_count) -%}
+  {%- set parts = [...parts, '<span>' ~ (p.word_count | num_format) ~ ' words</span>'] -%}
+{%- endif -%}
+{%- if not (e.hide_author if e.hide_author is defined else x.hide_author) -%}
+  {%- set who = (p.authors | join(sep=", ")) if p.authors else (x.author or config.author or "") -%}
+  {%- if who -%}{%- set parts = [...parts, '<span>' ~ (who | escape_html) ~ '</span>'] -%}{%- endif -%}
+{%- endif -%}
+<span class="entry-meta">{{ parts | join(sep="&nbsp;·&nbsp;") | safe }}</span>
+{%- endcomponent post_meta %}
+
+
+{% component draft_hint(size: integer = 20) -%}
+<span class="entry-hint" title="Draft">
+  <svg xmlns="http://www.w3.org/2000/svg" height="{{ size }}" viewBox="0 -960 960 960" fill="currentColor">
+    <path d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+  </svg>
+</span>
+{%- endcomponent draft_hint %}
+
+
+{#- Cover image for a page. `single` = rendering on the post itself. -#}
+{% component cover(p: map, single: bool = false) -%}
+{%- set c = p.extra.cover -%}
+{%- if c and c.image -%}
+{%- set hidden = (c.hidden_in_single if single and c.hidden_in_single is defined else (c.hidden_in_list if not single and c.hidden_in_list is defined else (c.hidden or false))) -%}
+{%- if not hidden -%}
+{%- set alt = c.alt or c.caption or "" -%}
+{%- set remote = c.image is starting_with(pat="http") -%}
+<figure class="entry-cover">
+  {%- if remote %}
+  <img loading="{{ 'eager' if single else 'lazy' }}" src="{{ c.image }}" alt="{{ alt | striptags }}">
+  {%- else %}
+    {%- set src_path = (p.colocated_path ~ c.image) if p.colocated_path and not (c.image is starting_with(pat="/")) else (c.image | trim_start(pat="/")) -%}
+    {%- set meta = get_image_metadata(path=src_path, allow_missing=true) -%}
+    {%- if meta and meta.format != "svg" %}
+      {%- set widths = [w for w in [360, 480, 720, 1080, 1500] if w < meta.width] -%}
+      {%- set srcset = [] -%}
+      {%- for w in widths -%}{%- set r = resize_image(path=src_path, width=w, op="fit_width") -%}{%- set_global srcset = [...srcset, r.url ~ " " ~ w ~ "w"] -%}{%- endfor -%}
+      {%- set full = get_url(path=src_path if not p.colocated_path else "@/" ~ src_path) -%}
+      {%- if single and c.link_full_image %}<a href="{{ full }}" target="_blank" rel="noopener noreferrer">{% endif %}
+      <img loading="{{ 'eager' if single else 'lazy' }}"
+        srcset="{{ [...srcset, full ~ ' ' ~ meta.width ~ 'w'] | join(sep=', ') }}"
+        sizes="(min-width: 768px) 720px, 100vw" src="{{ full }}"
+        width="{{ meta.width }}" height="{{ meta.height }}" alt="{{ alt | striptags }}">
+      {%- if single and c.link_full_image %}</a>{% endif %}
+    {%- else %}
+      <img loading="{{ 'eager' if single else 'lazy' }}" src="{{ get_url(path=src_path if not p.colocated_path else '@/' ~ src_path) }}" alt="{{ alt | striptags }}">
+    {%- endif %}
+  {%- endif %}
+  {%- if single and c.caption %}
+  <figcaption>{{ c.caption | markdown(inline=true) | safe }}</figcaption>
+  {%- endif %}
+</figure>
+{%- endif -%}
+{%- endif -%}
+{%- endcomponent cover %}
+
+
+{#- A PaperMod post card used on the home page, generic sections and taxonomy pages. -#}
+{% component post_entry(p: map, cls: string = "post-entry", @config) -%}
+{%- set x = config.extra -%}
+<article class="{{ cls }}">
+  {{ <cover p={p} single={false} /> }}
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">
+      {{- p.title -}}
+      {%- if p.draft %}{{ <draft_hint /> }}{% endif %}
+    </h2>
+  </header>
+  {%- if not (p.extra.hide_summary if p.extra.hide_summary is defined else x.hide_summary) %}
+  {%- set summary = p.description or (p.summary | striptags | trim if p.summary else (p.content | striptags | truncate(length=280))) %}
+  <div class="entry-content">
+    <p>{{ summary }}</p>
+  </div>
+  {%- endif %}
+  {%- if not (p.extra.hide_meta if p.extra.hide_meta is defined else x.hide_meta) %}
+  <footer class="entry-footer">{{ <post_meta p={p} /> }}</footer>
+  {%- endif %}
+  <a class="entry-link" aria-label="post link to {{ p.title }}" href="{{ p.permalink }}"></a>
+</article>
+{%- endcomponent post_entry %}
+
+
+{% component breadcrumbs(ancestors: array, @config) -%}
+<nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+  {%- for path in ancestors %}
+  {%- set s = get_section(path=path, metadata_only=true) %}
+  {%- if not loop.first %}
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+  {%- endif %}
+  <a href="{{ s.permalink }}">{{ "Home" if loop.first else (s.title or s.path) }}</a>
+  {%- endfor %}
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+</nav>
+{%- endcomponent breadcrumbs %}
+
+
+{% component toc_items(items: array) -%}
+<ul>
+  {%- for h in items %}
+  <li>
+    <a href="#{{ h.id }}" aria-label="{{ h.title | striptags }}">{{ h.title | striptags }}</a>
+    {%- if h.children %}{{ <toc_items items={h.children} /> }}{% endif %}
+  </li>
+  {%- endfor %}
+</ul>
+{%- endcomponent toc_items %}
+
+
+{% component toc(items: array, open: bool = false) -%}
+{%- if items %}
+<details class="toc"{% if open %} open{% endif %}>
+  <summary accesskey="c" title="(Alt + C)">
+    <span class="title">Table of Contents</span>
+  </summary>
+  <div class="inner">{{ <toc_items items={items} /> }}</div>
+</details>
+{%- endif %}
+{%- endcomponent toc %}
+
+
+{% component social_icons(icons: array, align: string = "") -%}
+<div class="social-icons"{% if align %} align="{{ align }}"{% endif %}>
+  {%- for s in icons %}
+  <a href="{{ s.url | trim }}" target="_blank" rel="noopener noreferrer me" title="{{ (s.title if s.title is defined else s.name) | title }}">
+    {{ <icon name={s.name} /> }}
+  </a>
+  {%- endfor %}
+</div>
+{%- endcomponent social_icons %}
+
+
+{% component rss_button(href: string) -%}
+<a href="{{ href }}" title="RSS" aria-label="RSS">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" height="23">
+    <path d="M4 11a9 9 0 0 1 9 9" />
+    <path d="M4 4a16 16 0 0 1 16 16" />
+    <circle cx="5" cy="19" r="1" />
+  </svg>
+</a>
+{%- endcomponent rss_button %}
+
+
+{#- Pagination footer for Zola's `paginator`. -#}
+{% component pager(paginator: map, show_nums: bool = false) -%}
+{%- if paginator.number_pagers > 1 %}
+<footer class="page-footer">
+  <nav class="pagination">
+    {%- if paginator.previous %}
+    <a class="prev" href="{{ paginator.previous }}">«&nbsp;Prev{% if show_nums %}&nbsp;{{ paginator.current_index - 1 }}/{{ paginator.number_pagers }}{% endif %}</a>
+    {%- endif %}
+    {%- if paginator.next %}
+    <a class="next" href="{{ paginator.next }}">Next{% if show_nums %}&nbsp;{{ paginator.current_index + 1 }}/{{ paginator.number_pagers }}{% endif %}&nbsp;»</a>
+    {%- endif %}
+  </nav>
+</footer>
+{%- endif %}
+{%- endcomponent pager %}

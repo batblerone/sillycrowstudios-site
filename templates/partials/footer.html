@@ -1,0 +1,109 @@
+{%- set x = config.extra -%}
+{%- if page is defined -%}{%- set fcur = page -%}{%- elif section is defined -%}{%- set fcur = section -%}{%- else -%}{%- set fcur = none -%}{%- endif -%}
+{%- set hide_footer = fcur.extra.hide_footer if fcur and fcur.extra.hide_footer is defined else x.hide_footer -%}
+{%- if not hide_footer %}
+<footer class="footer">
+  {%- if not x.hide_copyright %}
+    {%- if x.copyright %}
+    <span>{{ x.copyright | markdown(inline=true) | safe }}</span>
+    {%- else %}
+    <span>&copy; {{ now() | date(format="%Y") }} <a href="{{ get_url(path='/', trailing_slash=true) }}">{{ config.title }}</a></span>
+    {%- endif %} ·
+  {%- endif %}
+  {%- if x.footer_text %}
+    {{ x.footer_text | markdown(inline=true) | safe }} ·
+  {%- endif %}
+  {#- Keeping this credit helps the original PaperMod project and Zola reach more people. -#}
+  <span>
+    Powered by
+    <a href="https://www.getzola.org/" rel="noopener" target="_blank">Zola</a> &amp;
+    <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+  </span>
+</footer>
+{%- endif %}
+
+{%- if not x.disable_scroll_to_top %}
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+    <polyline points="17 11 12 6 7 11"></polyline>
+    <polyline points="17 18 12 13 7 18"></polyline>
+  </svg>
+</a>
+{%- endif %}
+
+{%- include "partials/extend_footer.html" %}
+
+<script>
+  (function () {
+    var menu = document.getElementById("menu");
+    if (menu) {
+      try {
+        var pos = localStorage.getItem("menu-scroll-position");
+        if (pos) menu.scrollLeft = parseInt(pos, 10);
+        menu.addEventListener("scroll", function () { localStorage.setItem("menu-scroll-position", menu.scrollLeft); });
+      } catch (e) {}
+    }
+
+    // Team "#" links on the about page copy their link instead (js/team.js)
+    document.querySelectorAll('a[href^="#"]:not(.team .anchor)').forEach(function (anchor) {
+      anchor.addEventListener("click", function (e) {
+        var id = this.getAttribute("href").substr(1);
+        var target = id && document.querySelector("[id='" + decodeURIComponent(id) + "']");
+        if (!target) return;
+        e.preventDefault();
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        target.scrollIntoView(reduce ? undefined : { behavior: "smooth" });
+        if (id === "top") history.replaceState(null, null, " ");
+        else history.pushState(null, null, "#" + id);
+      });
+    });
+
+    {%- if not x.disable_scroll_to_top %}
+    var toplink = document.getElementById("top-link");
+    window.addEventListener("scroll", function () {
+      var t = window.innerHeight;
+      var y = document.body.scrollTop || document.documentElement.scrollTop;
+      toplink.classList.toggle("hidden", y <= t);
+    }, { passive: true });
+    {%- endif %}
+
+    {%- if not x.disable_theme_toggle %}
+    var toggle = document.getElementById("theme-toggle");
+    if (toggle) toggle.addEventListener("click", function () {
+      var html = document.documentElement;
+      var next = html.dataset.theme === "dark" ? "light" : "dark";
+      html.dataset.theme = next;
+      try { localStorage.setItem("pref-theme", next); } catch (e) {}
+      document.dispatchEvent(new CustomEvent("papermod:theme", { detail: next }));
+    });
+    {%- endif %}
+  })();
+</script>
+
+{%- set copy_buttons = page.extra.show_code_copy_buttons if page is defined and page.extra.show_code_copy_buttons is defined else x.show_code_copy_buttons -%}
+{%- if page is defined and copy_buttons %}
+<script>
+  document.querySelectorAll(".post-content pre > code").forEach(function (codeblock) {
+    var pre = codeblock.parentNode;
+    var button = document.createElement("button");
+    button.classList.add("copy-code");
+    button.type = "button";
+    button.textContent = "copy";
+    function done() {
+      button.textContent = "copied!";
+      setTimeout(function () { button.textContent = "copy"; }, 2000);
+    }
+    button.addEventListener("click", function () {
+      var text = codeblock.innerText;
+      if (navigator.clipboard) { navigator.clipboard.writeText(text).then(done); return; }
+      var range = document.createRange();
+      range.selectNodeContents(codeblock);
+      var sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(range);
+      try { document.execCommand("copy"); done(); } catch (e) {}
+      sel.removeRange(range);
+    });
+    pre.appendChild(button);
+  });
+</script>
+{%- endif %}

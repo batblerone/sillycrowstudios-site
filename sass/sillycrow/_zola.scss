@@ -1,0 +1,217 @@
+/* ---- Zola-specific additions ------------------------------------------ */
+
+:root {
+  /* Wider layout used by the blog (sidebar) and projects pages */
+  --wide-width: 1180px;
+  --accent: rgb(92, 142, 255);
+  --accent-soft: rgba(92, 142, 255, 0.14);
+  --warn: rgb(224, 160, 40);
+  --warn-soft: rgba(224, 160, 40, 0.14);
+  --ok: rgb(46, 170, 110);
+  --ok-soft: rgba(46, 170, 110, 0.14);
+}
+
+:root[data-theme="dark"] {
+  --accent: rgb(125, 166, 255);
+  --accent-soft: rgba(125, 166, 255, 0.16);
+}
+
+.main.wide {
+  max-width: calc(var(--wide-width) + var(--gap) * 2);
+}
+
+/* Giallo (Zola's highlighter) output */
+.giallo-l {
+  display: inline-block;
+  min-height: 1lh;
+  width: 100%;
+}
+
+.giallo-ln {
+  display: inline-block;
+  user-select: none;
+  margin-right: 0.4em;
+  padding: 0 0.4em;
+  min-width: 3ch;
+  text-align: right;
+  opacity: 0.6;
+}
+
+.md-content pre {
+  margin-bottom: var(--content-gap);
+  background: var(--code-block-bg) !important;
+  border-radius: var(--radius);
+  direction: ltr;
+}
+
+.md-content pre mark {
+  display: block;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+}
+
+.md-content pre code[data-name]::before {
+  content: attr(data-name);
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* GitHub-style alerts (markdown.github_alerts = true) */
+.md-content blockquote[class^="markdown-alert-"] {
+  border-inline-start-color: var(--accent);
+  background: var(--accent-soft);
+  padding: 0.6rem 1rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.md-content blockquote.markdown-alert-warning,
+.md-content blockquote.markdown-alert-caution {
+  border-inline-start-color: var(--warn);
+  background: var(--warn-soft);
+}
+
+.md-content blockquote.markdown-alert-tip {
+  border-inline-start-color: var(--ok);
+  background: var(--ok-soft);
+}
+
+/* Footnotes */
+.md-content .footnotes {
+  font-size: 14px;
+  color: var(--secondary);
+}
+
+/* Responsive video embed component */
+.video-embed {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  margin-bottom: var(--content-gap);
+}
+
+.video-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: var(--radius);
+}
+
+/* Inline link card to a project (project_card component) */
+.project-inline-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: var(--content-gap);
+  padding: 14px 18px;
+  background: var(--entry);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none !important;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.project-inline-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--tertiary);
+}
+
+.project-inline-card span {
+  color: var(--secondary);
+  font-size: 14px;
+}
+
+/* Shared form controls */
+.pm-input,
+.pm-select {
+  width: 100%;
+  padding: 7px 10px;
+  color: var(--primary);
+  background: var(--entry);
+  border: 1px solid var(--tertiary);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 14px;
+}
+
+.pm-input:focus,
+.pm-select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.pm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  font-size: 13px;
+  line-height: 24px;
+  color: var(--secondary);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .pm-chip {
+  background: var(--entry);
+}
+
+.pm-chip:hover {
+  border-color: var(--tertiary);
+  color: var(--primary);
+}
+
+.pm-chip[aria-pressed="true"] {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.pm-chip .count {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.pm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 14px;
+  color: var(--theme);
+  background: var(--primary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.pm-btn.ghost {
+  color: var(--primary);
+  background: transparent;
+  border: 1px solid var(--tertiary);
+}
+
+.pm-btn:hover {
+  opacity: 0.88;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Align the header with wide pages (blog / projects) */
+body:has(.main.wide) .header-nav {
+  max-width: calc(var(--wide-width) + var(--gap) * 2);
+}

@@ -1,0 +1,378 @@
+/* ---- Images: hero banners + the `image` component ------------------------
+   templates/partials/image_components.html and templates/partials/hero.html
+   ------------------------------------------------------------------------- */
+
+:root {
+  /* How far "wide" images reach */
+  --wide-image-width: 1100px;
+}
+
+/* Full-bleed images use 100vw; clip stops that adding a sideways scrollbar. */
+body {
+  overflow-x: clip;
+}
+
+/* Floats stay inside the text they belong to */
+.md-content {
+  display: flow-root;
+}
+
+.md-content h1,
+.md-content h2 {
+  clear: both;
+}
+
+/* ---- Shared ------------------------------------------------------------- */
+
+.sc-image {
+  --img-overlay: 0;
+  position: relative;
+  margin: var(--content-gap) 0;
+}
+
+.sc-image__frame {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+/* Beat `.md-content img` from the theme */
+.sc-image img,
+.md-content .sc-image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+}
+
+.sc-image.is-rounded .sc-image__frame {
+  border-radius: var(--radius);
+}
+
+.sc-image.has-shadow .sc-image__frame {
+  box-shadow: 0 14px 34px -16px rgba(0, 0, 0, 0.55);
+}
+
+a.sc-image__frame {
+  box-shadow: none;
+}
+
+a.sc-image__frame img {
+  transition: transform 0.35s ease, opacity 0.2s ease;
+}
+
+a.sc-image__frame:hover img {
+  transform: scale(1.02);
+  opacity: 0.94;
+}
+
+/* Cropped to a height: the image fills the frame, `focus` picks what stays in view */
+.sc-image.is-cropped .sc-image__frame {
+  width: 100%;
+  height: var(--img-height);
+}
+
+.sc-image.is-cropped img,
+.md-content .sc-image.is-cropped img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: var(--img-focus, center);
+}
+
+/* Captions */
+.sc-image figcaption,
+.md-content .sc-image > figcaption {
+  margin: 8px 0 0;
+  color: var(--secondary);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.sc-image--left > figcaption,
+.sc-image--right > figcaption {
+  text-align: start;
+}
+
+.sc-image__credit-line {
+  display: block;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* ---- Positions ---------------------------------------------------------- */
+
+/* center (default) */
+.sc-image--center {
+  width: var(--img-width, auto);
+  max-width: 100%;
+  margin-inline: auto;
+  clear: both;
+}
+
+.sc-image--center .sc-image__frame {
+  max-width: 100%;
+}
+
+/* left / right: float, text wraps around */
+.sc-image--left,
+.sc-image--right {
+  width: var(--img-width, 45%);
+  max-width: 100%;
+  margin-top: 6px;
+  margin-bottom: 14px;
+}
+
+.sc-image--left {
+  float: left;
+  margin-inline: 0 calc(var(--gap) * 0.9);
+}
+
+.sc-image--right {
+  float: right;
+  margin-inline: calc(var(--gap) * 0.9) 0;
+}
+
+.sc-image--left .sc-image__frame,
+.sc-image--right .sc-image__frame {
+  width: 100%;
+}
+
+.sc-image--left img,
+.sc-image--right img,
+.md-content .sc-image--left img,
+.md-content .sc-image--right img {
+  width: 100%;
+}
+
+/* wide: breaks out of the text column */
+.sc-image--wide {
+  --w: min(var(--wide-image-width), 100vw - var(--gap) * 2);
+  width: var(--w);
+  margin-inline: calc((100% - var(--w)) / 2);
+  clear: both;
+}
+
+.sc-image--wide .sc-image__frame,
+.sc-image--wide img,
+.md-content .sc-image--wide img {
+  width: 100%;
+}
+
+/* full: edge to edge of the window (for pages with a centred column) */
+.sc-image--full {
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  clear: both;
+}
+
+.sc-image--full .sc-image__frame,
+.sc-image--full img,
+.md-content .sc-image--full img {
+  width: 100%;
+}
+
+/* inline: inside a line of text, `height` sets its size */
+.sc-image--inline,
+.sc-image--inline .sc-image__frame {
+  display: inline-block;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.sc-image--inline img,
+.md-content .sc-image--inline img {
+  display: inline-block;
+  width: auto;
+  height: var(--img-height, 1.2em);
+}
+
+.sc-image--inline.is-rounded .sc-image__frame {
+  border-radius: 4px;
+}
+
+@media screen and (max-width: 600px) {
+  /* Floats stack above the text on phones, kept to a sensible size */
+  .sc-image--left,
+  .sc-image--right {
+    float: none;
+    width: min(100%, max(var(--img-width, 45%), 60%));
+    margin-inline: auto;
+  }
+}
+
+/* ---- Text over the image ------------------------------------------------ */
+
+.sc-image.has-text .sc-image__frame {
+  width: 100%;
+  min-height: 160px;
+}
+
+.sc-image.has-text img {
+  width: 100%;
+}
+
+.sc-image.has-text:not(.is-cropped) img {
+  min-height: 160px;
+  object-fit: cover;
+}
+
+/* Darkening so white text stays readable */
+.sc-image__frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(0, 0, 0, var(--img-overlay));
+}
+
+.sc-image.text-v-bottom .sc-image__frame::after {
+  background: linear-gradient(to top, rgba(0, 0, 0, calc(var(--img-overlay) * 1.8)), rgba(0, 0, 0, calc(var(--img-overlay) * 0.6)) 45%, transparent 85%);
+}
+
+.sc-image.text-v-top .sc-image__frame::after {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, calc(var(--img-overlay) * 1.8)), rgba(0, 0, 0, calc(var(--img-overlay) * 0.6)) 45%, transparent 85%);
+}
+
+.sc-image__text {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: var(--gap);
+  color: #fff;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
+}
+
+.text-v-top .sc-image__text {
+  justify-content: flex-start;
+}
+
+.text-v-bottom .sc-image__text {
+  justify-content: flex-end;
+}
+
+.text-left .sc-image__text {
+  align-items: flex-start;
+  text-align: start;
+}
+
+.text-center .sc-image__text {
+  align-items: center;
+  text-align: center;
+}
+
+.text-right .sc-image__text {
+  align-items: flex-end;
+  text-align: end;
+}
+
+.sc-image__title {
+  display: block;
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.sc-image__sub {
+  display: block;
+  max-width: 640px;
+  font-size: clamp(15px, 2vw, 18px);
+  line-height: 1.45;
+  opacity: 0.95;
+}
+
+.sc-image__text a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* ---- Hero banner (front matter [extra.hero]) ----------------------------- */
+
+.page-hero .sc-image {
+  margin: 0;
+}
+
+.page-hero--wide {
+  max-width: calc(var(--wide-width) + var(--gap) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gap);
+}
+
+.page-hero--content {
+  max-width: calc(var(--main-width) + var(--gap) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gap);
+}
+
+.sc-image--hero .sc-image__frame {
+  width: 100%;
+}
+
+/* Line the hero text up with the page's text column */
+.page-hero--full .sc-image__text {
+  left: 50%;
+  width: min(100%, calc(var(--main-width) + var(--gap) * 2));
+  transform: translateX(-50%);
+}
+
+/* …or with the wider layouts (blog, projects, about) */
+body:has(.main.wide) .page-hero--full .sc-image__text {
+  width: min(100%, calc(var(--wide-width) + var(--gap) * 2));
+}
+
+body:has(.main.about-main) .page-hero--full .sc-image__text {
+  width: min(100%, calc(var(--main-width) + var(--gap) * 2));
+}
+
+.sc-image--hero .sc-image__title {
+  font-size: clamp(30px, 5.2vw, 46px);
+}
+
+.sc-image--hero .sc-image__sub {
+  font-size: clamp(15px, 2.2vw, 19px);
+}
+
+.sc-image__credit {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  z-index: 1;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.sc-image__credit a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* show_title = true: the banner carries the title, so hide the usual one */
+.has-hero-title .post-header .post-title,
+.has-hero-title .post-header .post-description,
+.has-hero-title .page-header > h1,
+.has-hero-title .page-header > .post-description,
+.has-hero-title .project__title,
+.has-hero-title .project__desc {
+  display: none;
+}
+
+.has-hero-title .post-header:not(:has(> :not(.post-title, .post-description))),
+.has-hero-title .page-header:not(:has(> :not(h1, .post-description))) {
+  display: none;
+}
+
+.page-hero + .main {
+  padding-top: calc(var(--gap) * 1.25);
+}

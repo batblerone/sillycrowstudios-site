@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{#-
+  Projects gallery, modelled on https://bevy.org/examples-webgpu/.
+
+    content/projects/_index.md          template = "projects.html"
+    content/projects/games/_index.md    template = "projects.html", page_template = "project.html"
+    content/projects/games/my-game/     index.md + game.js + game_bg.wasm + assets/ + source.zip
+
+  Subsections become categories (sidebar + headings). Pages placed directly in a
+  section are shown before its subsections.
+-#}
+
+{% block main_class %} wide{% endblock main_class %}
+
+{% block main %}
+{%- set x = config.extra -%}
+{%- set e = section.extra -%}
+<header class="page-header">
+  {%- if (e.show_breadcrumbs if e.show_breadcrumbs is defined else x.show_breadcrumbs) and section.ancestors | length > 1 %}{{ <breadcrumbs ancestors={section.ancestors} /> }}{% endif %}
+  <h1>{{ section.title }}</h1>
+  {%- if section.description %}
+  <div class="post-description">{{ section.description | markdown(inline=true) | safe }}</div>
+  {%- endif %}
+</header>
+
+<div class="projects-layout" id="projects">
+  <aside class="projects-sidebar" aria-label="Project categories">
+    <div class="projects-sidebar__inner">
+      <label class="filter-label" for="project-q">Search</label>
+      <div class="blog-search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="project-q" class="pm-input" type="search" placeholder="Search projects  ( / )" autocomplete="off" data-project-q>
+      </div>
+
+      <div class="project-renderer-filter" role="group" aria-label="Renderer">
+        <span class="filter-label">Renderer</span>
+        <div class="chip-list">
+          <button type="button" class="pm-chip" data-renderer-filter="all" aria-pressed="true">All</button>
+          <button type="button" class="pm-chip" data-renderer-filter="webgpu" aria-pressed="false">WebGPU</button>
+          <button type="button" class="pm-chip" data-renderer-filter="webgl2" aria-pressed="false">WebGL2</button>
+        </div>
+      </div>
+
+      {%- if section.subsections %}
+      <nav aria-label="Categories">
+        <span class="filter-label">Categories</span>
+        {{ <project_menu paths={section.subsections} /> }}
+      </nav>
+      {%- endif %}
+    </div>
+  </aside>
+
+  <div class="projects-main">
+    <div class="gpu-status" data-gpu-status hidden></div>
+
+    {%- if section.content %}
+    <div class="post-content md-content projects-intro">{{ section.content | safe }}</div>
+    {%- endif %}
+
+    {%- if section.pages %}
+    <section class="project-group" data-group>
+      <div class="project-grid">
+        {%- for p in section.pages %}{{ <project_card p={p} /> }}{% endfor %}
+      </div>
+    </section>
+    {%- endif %}
+
+    {%- for sub in section.subsections %}
+    {{ <project_group path={sub} /> }}
+    {%- endfor %}
+
+    <p class="projects-empty" data-projects-empty hidden>No projects match your search.</p>
+  </div>
+</div>
+{% endblock main %}
+
+{% block scripts %}
+<script src="{{ get_url(path='js/projects.js') }}" defer></script>
+{% endblock scripts %}

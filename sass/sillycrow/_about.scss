@@ -1,0 +1,404 @@
+/* ---- About page + team cards (about.html) --------------------------------
+   Modelled on https://bevy.org/community/people/: groups of people cards with
+   coloured role badges, social links and an optional sponsor link.
+   ------------------------------------------------------------------------- */
+
+/* The prose keeps the normal reading width; the team grid gets more room. */
+.main.about-main {
+  max-width: calc(var(--team-width) + var(--gap) * 2);
+}
+
+:root {
+  --team-width: 1000px;
+}
+
+.about > .post-header,
+.about > .post-content,
+.about > .toc {
+  max-width: var(--main-width);
+  margin-inline: auto;
+}
+
+.about > .post-content {
+  margin-bottom: calc(var(--gap) * 2);
+}
+
+.team__header {
+  max-width: var(--main-width);
+}
+
+/* Shared "#" anchors that appear on hover */
+.team .anchor {
+  margin-inline-start: 6px;
+  color: var(--secondary);
+  font-weight: 400;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.team__title:hover .anchor,
+.team-group__title:hover .anchor,
+.team-card__name:hover .anchor,
+.team .anchor:focus-visible,
+.team .anchor.is-copied {
+  opacity: 1;
+}
+
+.team .anchor {
+  position: relative;
+  cursor: copy;
+}
+
+.team .anchor::after {
+  font-weight: 400;
+  letter-spacing: normal;
+}
+
+/* ---- Team section header ------------------------------------------------- */
+
+.team {
+  padding-top: calc(var(--gap) * 1.5);
+  border-top: 1px solid var(--border);
+  scroll-margin-top: var(--gap);
+}
+
+.team__title {
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.team__intro {
+  margin-top: 10px;
+  color: var(--secondary);
+}
+
+.team__intro p:last-child {
+  margin-bottom: 0;
+}
+
+/* Role legend */
+.team-legend {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: baseline;
+  gap: 10px 14px;
+  max-width: var(--main-width);
+  margin-top: var(--content-gap);
+  padding: 14px 16px;
+  background: var(--entry);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.team-legend__row {
+  display: contents;
+}
+
+.team-legend dd {
+  margin: 0;
+  color: var(--content);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Jump links */
+.team-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: var(--content-gap);
+}
+
+.team-nav .pm-chip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ---- Groups -------------------------------------------------------------- */
+
+.team-group {
+  margin-top: calc(var(--gap) * 1.5);
+  scroll-margin-top: var(--gap);
+}
+
+.team-group .team-group {
+  margin-top: var(--gap);
+}
+
+.team-group__title {
+  font-size: 24px;
+  line-height: 1.3;
+}
+
+h4.team-group__title,
+h5.team-group__title {
+  font-size: 19px;
+}
+
+.team-group__desc {
+  margin-top: 4px;
+  color: var(--secondary);
+  font-size: 15px;
+}
+
+.team-group__desc p {
+  margin-bottom: 0;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+
+/* ---- Card ---------------------------------------------------------------- */
+
+.team-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px;
+  background: var(--entry);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  scroll-margin-top: var(--gap);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--tertiary);
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.45);
+}
+
+/* Linked to directly (/about/#name) */
+.team-card:target {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.team-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.team-card__avatar {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--code-bg);
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.team-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-card__initials {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background:
+    radial-gradient(circle at 30% 25%, hsl(var(--hue) 80% 62% / 0.9), transparent 60%),
+    radial-gradient(circle at 75% 80%, hsl(calc(var(--hue) + 60) 75% 50% / 0.85), transparent 65%),
+    hsl(calc(var(--hue) + 200) 30% 18%);
+}
+
+.team-card__who {
+  min-width: 0;
+}
+
+.team-card__name {
+  font-size: 18px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.team-card__position,
+.team-card__pronouns {
+  color: var(--secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.team-card__pronouns {
+  font-style: italic;
+}
+
+/* Role badges (Bevy's people-role) */
+.team-card__roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.team-role {
+  --role-color: var(--secondary);
+  display: inline-block;
+  padding: 0 7px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  color: var(--role-color);
+  border: 1px solid var(--role-color);
+  border-radius: 4px;
+}
+
+/* Pull role text toward the page's text colour so light hues stay readable */
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .team-role {
+    color: color-mix(in srgb, var(--role-color) 72%, var(--primary));
+    background: color-mix(in srgb, var(--role-color) 12%, transparent);
+    border-color: color-mix(in srgb, var(--role-color) 65%, transparent);
+  }
+}
+
+.team-role--big {
+  padding: 1px 9px;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.team-card__bio {
+  color: var(--content);
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.team-card__bio p + p {
+  margin-top: 6px;
+}
+
+.team-card__bio a {
+  box-shadow: 0 1px 0 var(--secondary);
+}
+
+/* Links + sponsor, pinned to the bottom of the card */
+.team-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.team-card__footer:not(:has(a, button)) {
+  display: none;
+}
+
+.team-card__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-inline-start: -6px;
+}
+
+.team-link {
+  position: relative;
+  display: inline-flex;
+  padding: 6px;
+  color: var(--secondary);
+  background: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.team-link:hover,
+.team-link:focus-visible {
+  color: var(--primary);
+  background: var(--code-bg);
+}
+
+[data-theme="dark"] .team-link:hover,
+[data-theme="dark"] .team-link:focus-visible {
+  background: var(--tertiary);
+}
+
+.team-link svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* "Copied" tooltip for handles copied to the clipboard */
+/* "Copied" / "Link copied" tooltip (team.js) */
+.team [data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  padding: 2px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--theme);
+  background: var(--primary);
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.team .is-copied::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.team-card__sponsor {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  font-size: 13px;
+  line-height: 22px;
+  color: rgb(219, 61, 105);
+  border: 1px solid rgba(219, 61, 105, 0.45);
+  border-radius: 999px;
+  transition: background 0.15s ease;
+}
+
+.team-card__sponsor:hover {
+  background: rgba(219, 61, 105, 0.12);
+}
+
+[data-theme="dark"] .team-card__sponsor {
+  color: rgb(240, 110, 150);
+}
+
+@media screen and (max-width: 768px) {
+  .team__title {
+    font-size: 28px;
+  }
+
+  .team-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .team-legend {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .team-legend dd {
+    margin-bottom: 8px;
+  }
+}

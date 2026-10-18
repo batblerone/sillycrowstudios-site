@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{#-
+  Filterable blog section. Use it from content/blog/_index.md:
+
+    +++
+    title = "Blog"
+    template = "blog.html"
+    sort_by = "date"
+    +++
+
+  Every post is rendered into the page (so it works without JavaScript); the
+  sidebar then filters, searches, sorts and paginates them in the browser and
+  keeps the state in the URL (?q=…&tags=a,b&categories=…&year=…&sort=…&page=…).
+-#}
+
+{% block main_class %} wide{% endblock main_class %}
+
+{% block main %}
+{%- set x = config.extra -%}
+{%- set bx = x.blog -%}
+{%- set e = section.extra -%}
+{%- set kinds = e.filter_taxonomies if e.filter_taxonomies is defined else bx.filter_taxonomies -%}
+{%- set pages = [p for p in section.pages if not p.extra.hidden_in_blog] -%}
+
+<header class="page-header blog-header">
+  {%- if (e.show_breadcrumbs if e.show_breadcrumbs is defined else x.show_breadcrumbs) and section.ancestors %}{{ <breadcrumbs ancestors={section.ancestors} /> }}{% endif %}
+  <h1>
+    {{ section.title }}
+    {%- if section.generate_feeds and x.show_rss_button_in_section_term_list %}
+    {{ <rss_button href={section.permalink ~ config.feed_filenames[0]} /> }}
+    {%- endif %}
+  </h1>
+  {%- if section.description %}
+  <div class="post-description">{{ section.description | markdown(inline=true) | safe }}</div>
+  {%- endif %}
+</header>
+
+{%- if section.content %}
+<div class="post-content md-content">{{ section.content | safe }}</div>
+{%- endif %}
+
+<div class="blog-layout" id="blog"
+  data-page-size="{{ e.page_size if e.page_size is defined else bx.page_size }}"
+  data-kinds="{{ kinds | join(sep=',') }}"
+  {%- if config.build_search_index %} data-search-index="{{ get_url(path='search_index.' ~ lang ~ '.json') }}"{% endif %}>
+
+  <aside class="blog-sidebar" aria-label="Filter posts">
+    <details class="blog-filters" id="blog-filters" open>
+      <summary class="blog-filters-summary">
+        <span>Filters</span>
+        <span class="blog-active-count" data-active-count hidden></span>
+      </summary>
+
+      <div class="blog-filters-body">
+        <div class="filter-group">
+          <label class="filter-label" for="blog-q">Search</label>
+          <div class="blog-search">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input id="blog-q" class="pm-input" type="search" placeholder="Title, text, tag…  ( / )" autocomplete="off" data-filter-q>
+          </div>
+          <p class="filter-hint" data-index-status hidden></p>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label" for="blog-sort">Sort</label>
+          <select id="blog-sort" class="pm-select" data-filter-sort>
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="title">Title A–Z</option>
+            <option value="longest">Longest read</option>
+            <option value="shortest">Shortest read</option>
+          </select>
+        </div>
+
+        {%- for kind in kinds %}
+        {%- set_global names = [] %}
+        {%- for p in pages %}
+          {%- if p.taxonomies[kind] is defined %}{% set_global names = [...names, ...p.taxonomies[kind]] %}{% endif %}
+        {%- endfor %}
+        {%- set names = names | unique | sort %}
+        {%- if names %}
+        <div class="filter-group" data-kind="{{ kind }}" data-slug="{{ kind | slugify }}">
+          <div class="filter-label-row">
+            <span class="filter-label">{{ kind | replace(from="_", to=" ") | capitalize }}</span>
+            <span class="match-toggle" role="group" aria-label="Match mode for {{ kind }}">
+              <button type="button" class="match-btn" data-match="any" aria-pressed="true" title="Posts with any selected {{ kind }}">Any</button>
+              <button type="button" class="match-btn" data-match="all" aria-pressed="false" title="Posts with all selected {{ kind }}">All</button>
+            </span>
+          </div>
+          <div class="chip-list" data-chips>
+            {%- for n in names %}
+            <button type="button" class="pm-chip" data-term="{{ n }}" aria-pressed="false">{{ n }}<span class="count" data-count></span></button>
+            {%- endfor %}
+          </div>
+          <button type="button" class="chip-more" data-more hidden>Show all</button>
+        </div>
+        {%- endif %}
+        {%- endfor %}
+
+        {%- if e.show_year_filter if e.show_year_filter is defined else bx.show_year_filter %}
+        {%- set years = [p.year for p in pages if p.year] | unique | sort | reverse %}
+        {%- if years %}
+        <div class="filter-group" data-kind="year">
+          <div class="filter-label-row"><span class="filter-label">Year</span></div>
+          <div class="chip-list" data-chips>
+            {%- for y in years %}
+            <button type="button" class="pm-chip" data-term="{{ y }}" aria-pressed="false">{{ y }}<span class="count" data-count></span></button>
+            {%- endfor %}
+          </div>
+        </div>
+        {%- endif %}
+        {%- endif %}
+
+        <button type="button" class="pm-btn ghost blog-clear" data-clear-all>Clear all filters</button>
+      </div>
+    </details>
+  </aside>
+
+  <section class="blog-results" aria-live="polite">
+    <div class="blog-toolbar">
+      <span class="blog-count" data-result-count>{{ pages | length }} post{{ pages | length | pluralize }}</span>
+      <div class="blog-active" data-active-pills></div>
+    </div>
+
+    <div class="blog-list" data-list>
+      {%- for p in pages %}
+      <article class="post-entry blog-entry" data-post
+        data-url="{{ p.permalink }}"
+        data-title="{{ p.title }}"
+        data-date="{{ p.date | default(value='') }}"
+        data-year="{{ p.year | default(value='') }}"
+        data-reading="{{ p.reading_time }}"
+        {%- for kind in kinds %}
+        data-tax-{{ kind | slugify }}="{{ (p.taxonomies[kind] if p.taxonomies[kind] is defined else []) | json_encode }}"
+        {%- endfor %}
+        data-text="{{ (p.title ~ ' ' ~ (p.description or '') ~ ' ' ~ ((p.summary or '') | striptags)) | lower }}">
+        {{ <cover p={p} single={false} /> }}
+        <header class="entry-header">
+          <h2 class="entry-hint-parent">
+            {{- p.title -}}
+            {%- if p.draft %}{{ <draft_hint /> }}{% endif %}
+          </h2>
+        </header>
+        {%- if not (p.extra.hide_summary if p.extra.hide_summary is defined else x.hide_summary) %}
+        <div class="entry-content">
+          <p>{{ p.description or (p.summary | striptags | trim if p.summary else (p.content | striptags | truncate(length=280))) }}</p>
+        </div>
+        {%- endif %}
+        <footer class="entry-footer">
+          {{ <post_meta p={p} /> }}
+          {%- if p.taxonomies.tags is defined and p.taxonomies.tags %}
+          <div class="entry-tags">
+            {%- for t in p.taxonomies.tags %}
+            <button type="button" class="pm-chip mini" data-add-filter="tags" data-term="{{ t }}">#{{ t }}</button>
+            {%- endfor %}
+          </div>
+          {%- endif %}
+        </footer>
+        <a class="entry-link" aria-label="post link to {{ p.title }}" href="{{ p.permalink }}"></a>
+      </article>
+      {%- endfor %}
+    </div>
+
+    <div class="blog-empty" data-empty hidden>
+      <p>No posts match these filters.</p>
+      <button type="button" class="pm-btn" data-clear-all>Clear filters</button>
+    </div>
+
+    <nav class="blog-pager" data-pager aria-label="Pagination" hidden></nav>
+  </section>
+</div>
+{% endblock main %}
+
+{% block scripts %}
+<script src="{{ get_url(path='js/blog-filter.js') }}" defer></script>
+{% endblock scripts %}

@@ -1,0 +1,21 @@
+{#- PaperMod for Zola — base layout. Child templates fill `main`. -#}
+{%- set x = config.extra -%}
+{%- set theme_mode = x.default_theme or "auto" -%}
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ text_direction(lang=lang) }}" data-theme="{{ theme_mode }}">
+<head>
+  {%- include "partials/head.html" %}
+  {%- block head_extra %}{% endblock head_extra %}
+</head>
+{%- if page is defined and page -%}{%- set bcur = page -%}{%- elif section is defined and section -%}{%- set bcur = section -%}{%- else -%}{%- set bcur = none -%}{%- endif -%}
+{%- set hero_title = bcur and bcur.extra.hero is defined and bcur.extra.hero and bcur.extra.hero.image is defined and bcur.extra.hero.image and bcur.extra.hero.show_title is defined and bcur.extra.hero.show_title and not (bcur.extra.hero.hidden is defined and bcur.extra.hero.hidden) -%}
+<body class="{% block body_class %}list{% endblock body_class %}{% if hero_title %} has-hero-title{% endif %}" id="top">
+  {%- include "partials/header.html" %}
+  {%- block hero %}{% include "partials/hero.html" %}{% endblock hero %}
+  <main class="main{% block main_class %}{% endblock main_class %}">
+    {%- block main %}{% endblock main %}
+  </main>
+  {%- include "partials/footer.html" %}
+  {%- block scripts %}{% endblock scripts %}
+  </body>
+</html>

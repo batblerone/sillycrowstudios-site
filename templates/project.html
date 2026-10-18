@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{#-
+  A single project: an in-browser WASM player (WebGPU or WebGL2) plus a source
+  browser that reads the project's source.zip. Front matter ([extra]):
+
+    wasm        = "game"          # basename of the wasm-bindgen output: game.js + game_bg.wasm
+    renderer    = "webgpu"        # or "webgl2"
+    source_zip  = "source.zip"    # zip of the project's source, shown in the code browser
+    main_file   = "src/main.rs"   # file opened first in the code browser
+    image       = "cover.png"     # card thumbnail and player poster
+    repo        = "https://github.com/you/game"
+    bevy_version = "0.20"
+    license     = "MIT OR Apache-2.0"
+    aspect_ratio = "16 / 9"
+    controls    = [["← → / A D", "Move"], ["Space", "Restart"]]
+    autoplay    = false
+-#}
+
+{% block main_class %} wide{% endblock main_class %}
+{% block body_class %}project-page{% endblock body_class %}
+
+{% block main %}
+{%- set x = config.extra -%}
+{%- set px = x.projects -%}
+{%- set e = page.extra -%}
+{%- set renderer = e.renderer if e.renderer is defined else px.default_renderer -%}
+{%- set has_game = e.wasm is defined and e.wasm -%}
+{%- set aspect = e.aspect_ratio if e.aspect_ratio is defined else px.default_aspect_ratio -%}
+{%- set parent = get_section(path=page.ancestors[-1], metadata_only=true) -%}
+{%- set gallery_path = page.ancestors[1] if page.ancestors | length > 1 else page.ancestors[-1] -%}
+{%- set gallery = get_section(path=gallery_path, metadata_only=true) -%}
+{%- set img = e.image if e.image is defined else "" -%}
+{%- if img and not (img is starting_with(pat="http")) -%}
+  {%- set poster = get_url(path="@/" ~ page.colocated_path ~ img) if page.colocated_path else get_url(path=img) -%}
+{%- else -%}
+  {%- set poster = img -%}
+{%- endif -%}
+
+<article class="project">
+  <header class="project__header">
+    <div class="project__crumbs">
+      <a class="project__back" href="{{ gallery.permalink }}">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        {{ gallery.title }}
+      </a>
+      {%- if parent.permalink != gallery.permalink %}
+      <span class="sep">/</span><a href="{{ gallery.permalink }}#{{ parent.title | slugify }}">{{ parent.title }}</a>
+      {%- endif %}
+    </div>
+    <h1 class="project__title entry-hint-parent">{{ page.title }}{% if page.draft %}{{ <draft_hint size={30} /> }}{% endif %}</h1>
+    {%- if page.description %}<p class="project__desc">{{ page.description }}</p>{% endif %}
+    <div class="project__meta">
+      {%- if has_game %}<span class="project-badge project-badge--{{ renderer }} static">{{ "WebGPU" if renderer == "webgpu" else "WebGL2" }}</span>{% endif %}
+      {%- if e.bevy_version is defined %}<span class="project-tag">Bevy {{ e.bevy_version }}</span>{% endif %}
+      {%- if e.license is defined %}<span class="project-tag" title="License">⚖ {{ e.license }}</span>{% endif %}
+      {%- if page.taxonomies.tags is defined %}{% for t in page.taxonomies.tags %}<a class="project-tag" href="{{ get_taxonomy_url(kind='tags', term=t, lang=page.lang) }}">#{{ t }}</a>{% endfor %}{% endif %}
+      {%- if page.date %}<span class="project__date">{{ page.date | date(format=x.date_format) }}</span>{% endif %}
+    </div>
+    <div class="project__actions">
+      {%- if e.source_zip is defined %}
+      <a class="pm-btn ghost" href="{{ page.permalink ~ e.source_zip }}" download>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Source (.zip)
+      </a>
+      {%- endif %}
+      {%- if e.repo is defined %}
+      <a class="pm-btn ghost" href="{{ e.repo }}" target="_blank" rel="noopener">
+        {{ <icon name="git" /> }} Repository
+      </a>
+      {%- endif %}
+    </div>
+  </header>
+
+  {%- if has_game %}
+  <div class="game" id="game"
+    data-js="{{ page.permalink ~ e.wasm }}.js"
+    data-wasm="{{ page.permalink ~ e.wasm }}_bg.wasm"
+    data-renderer="{{ renderer }}"
+    data-autoplay="{{ 'true' if e.autoplay is defined and e.autoplay else 'false' }}"
+    style="--game-aspect: {{ aspect }}">
+    <div class="game__frame" data-frame>
+      <canvas id="bevy" class="game__canvas" tabindex="0" aria-label="{{ page.title }} game canvas"></canvas>
+
+      <div class="game__overlay" data-overlay{% if poster %} style="background-image: url('{{ poster }}')"{% endif %}>
+        <button type="button" class="game__play" data-play aria-label="Play {{ page.title }}">
+          <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="game__play-label">
+          <strong>Click to play</strong>
+          <span data-size-hint>Runs in your browser with {{ "WebGPU" if renderer == "webgpu" else "WebGL2" }}</span>
+        </div>
+      </div>
+
+      <div class="game__progress" data-progress hidden>
+        <div class="game__progress-file" data-progress-file>Loading…</div>
+        <div class="game__progress-track"><div class="game__progress-bar" data-progress-bar></div></div>
+      </div>
+
+      <div class="game__error" data-error hidden>
+        <strong>Couldn’t start this project.</strong>
+        <p data-error-text></p>
+        <button type="button" class="pm-btn" data-reload>Reload page</button>
+      </div>
+
+      <noscript><div class="game__error"><strong>JavaScript is required to run this project.</strong></div></noscript>
+    </div>
+
+    <div class="game__bar">
+      <div class="game__support" data-support></div>
+      <div class="game__bar-actions">
+        <button type="button" class="pm-btn ghost small" data-fullscreen title="Fullscreen (F)" disabled>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          Fullscreen
+        </button>
+        <button type="button" class="pm-btn ghost small" data-reload title="Restart" disabled>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Restart
+        </button>
+      </div>
+    </div>
+
+    <aside class="game__callout" data-gpu-warning hidden>
+      <strong>WebGPU not available.</strong>
+      This project is built for WebGPU, which needs a recent Chrome, Edge or Safari (or Firefox with WebGPU enabled)
+      on a device with a supported GPU. You can still try to run it, or browse the source below.
+    </aside>
+  </div>
+  {%- endif %}
+
+  {%- if e.controls is defined and e.controls %}
+  <section class="project__controls">
+    <h2 class="project__h2">Controls</h2>
+    <dl class="controls-list">
+      {%- for c in e.controls %}
+      <div><dt>{% for k in c[0] | split(pat=" / ") %}<kbd>{{ k }}</kbd>{% if not loop.last %} / {% endif %}{% endfor %}</dt><dd>{{ c[1] }}</dd></div>
+      {%- endfor %}
+    </dl>
+  </section>
+  {%- endif %}
+
+  {%- if page.content %}
+  <div class="post-content md-content project__content">
+    {{ page.content | safe }}
+  </div>
+  {%- endif %}
+
+  {%- if e.source_zip is defined %}
+  <section class="project__source">
+    <h2 class="project__h2" id="source">Source</h2>
+    <div class="source-browser" id="source-browser"
+      data-zip="{{ page.permalink ~ e.source_zip }}"
+      data-main="{{ e.main_file if e.main_file is defined else 'src/main.rs' }}">
+      <div class="source-browser__toolbar">
+        <span class="source-browser__path" data-path>source.zip</span>
+        <div class="source-browser__actions">
+          <button type="button" class="pm-btn ghost small" data-copy disabled>Copy</button>
+          <a class="pm-btn ghost small" href="{{ page.permalink ~ e.source_zip }}" download>Download .zip</a>
+        </div>
+      </div>
+      <div class="source-browser__body">
+        <nav class="source-browser__tree" data-tree aria-label="Files">
+          <p class="source-browser__note">Loading source…</p>
+        </nav>
+        <div class="source-browser__code" data-code>
+          <noscript><p class="source-browser__note">Enable JavaScript to browse the source, or download the zip.</p></noscript>
+        </div>
+      </div>
+    </div>
+  </section>
+  {%- endif %}
+
+  <footer class="post-footer">
+    {%- set show_nav = e.show_post_nav_links if e.show_post_nav_links is defined else x.show_post_nav_links %}
+    {%- if show_nav and (page.higher or page.lower) %}
+    <nav class="paginav">
+      {%- if page.lower %}
+      <a class="prev" href="{{ page.lower.permalink }}"><span class="title">« Prev</span><span>{{ page.lower.title }}</span></a>
+      {%- endif %}
+      {%- if page.higher %}
+      <a class="next" href="{{ page.higher.permalink }}"><span class="title">Next »</span><span>{{ page.higher.title }}</span></a>
+      {%- endif %}
+    </nav>
+    {%- endif %}
+  </footer>
+</article>
+{% endblock main %}
+
+{% block scripts %}
+{%- if page.extra.wasm is defined and page.extra.wasm %}
+<script src="{{ get_url(path='js/restart-audio-context.js') }}"></script>
+<script type="module" src="{{ get_url(path='js/project-runner.js') }}"></script>
+{%- endif %}
+{%- if page.extra.source_zip is defined %}
+<link rel="stylesheet" href="{{ get_url(path='vendor/highlight-github-dark.min.css') }}">
+<script src="{{ get_url(path='vendor/jszip.min.js') }}" defer></script>
+<script src="{{ get_url(path='vendor/highlight.min.js') }}" defer></script>
+<script src="{{ get_url(path='js/source-viewer.js') }}" defer></script>
+{%- endif %}
+{% endblock scripts %}

@@ -1,0 +1,414 @@
+name: Publish Game
+
+# Builds a Bevy or Godot game for the web, adds it to the projects gallery
+# (content/projects/<category>/<slug>/) and deploys the site.
+#
+#   Bevy  -> tools/add-project.sh        (wasm-bindgen + wasm-opt, WebGPU or WebGL2)
+#   Godot -> tools/add-godot-project.sh  (Godot 4.3+ single-threaded web export)
+#
+# Start it from the Actions tab ("Run workflow"), or from a game's own repository
+# with a repository_dispatch event of type "publish-game" whose client_payload
+# uses the same names as the inputs below, for example:
+#
+#   gh api repos/<you>/<website-repo>/dispatches \
+#     -f event_type=publish-game \
+#     -f 'client_payload[engine]=bevy' \
+#     -f 'client_payload[repository]=<you>/<game-repo>' \
+#     -f "client_payload[ref]=$GITHUB_SHA"
+#
+# Private game repositories: add a secret named GAME_REPO_TOKEN (a fine-grained
+# token with read access to the game repositories).
+
+on:
+  workflow_dispatch:
+    inputs:
+      engine:
+        description: "Game engine"
+        required: true
+        type: choice
+        options: [bevy, godot]
+      repository:
+        description: "Game repository: owner/name for GitHub, or any git URL"
+        required: true
+        type: string
+      ref:
+        description: "Branch, tag or commit (empty = default branch)"
+        required: false
+        type: string
+        default: ""
+      path:
+        description: "Folder inside the repository that holds Cargo.toml / project.godot (empty = root)"
+        required: false
+        type: string
+        default: ""
+      title:
+        description: "Page title (empty = crate / Godot project name)"
+        required: false
+        type: string
+        default: ""
+      category:
+        description: "Gallery category (a folder under content/projects/)"
+        required: false
+        type: string
+        default: "games"
+      renderer:
+        description: "Bevy only: renderer to build for (Godot always uses WebGL2)"
+        required: false
+        type: choice
+        options: [webgpu, webgl2]
+        default: webgpu
+      options:
+        description: 'Extra options for the build script, e.g. --slug pong --bin pong --features x, or --godot-version 4.5 --preset Web'
+        required: false
+        type: string
+        default: ""
+      pre_build:
+        description: "Shell command run in the game folder before building (e.g. to build a godot-rust library)"
+        required: false
+        type: string
+        default: ""
+      publish:
+        description: "deploy = commit to the default branch and deploy now; pull-request = open a PR to review first"
+        required: true
+        type: choice
+        options: [deploy, pull-request]
+        default: deploy
+  repository_dispatch:
+    types: [publish-game]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# One publish at a time, so commits to the default branch never race.
+concurrency:
+  group: publish-game
+  cancel-in-progress: false
+
+env:
+  BINARYEN_VERSION: "version_133"
+
+jobs:
+  build:
+    name: Build ${{ inputs.engine || github.event.client_payload.engine }} game
+    runs-on: ubuntu-latest
+    outputs:
+      deployed: ${{ steps.commit.outputs.deployed }}
+    steps:
+      - name: Checkout website
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Read parameters
+        id: params
+        env:
+          ENGINE: ${{ inputs.engine || github.event.client_payload.engine }}
+          REPOSITORY: ${{ inputs.repository || github.event.client_payload.repository }}
+          REF: ${{ inputs.ref || github.event.client_payload.ref }}
+          SUBPATH: ${{ inputs.path || github.event.client_payload.path }}
+          TITLE: ${{ inputs.title || github.event.client_payload.title }}
+          CATEGORY: ${{ inputs.category || github.event.client_payload.category || 'games' }}
+          RENDERER: ${{ inputs.renderer || github.event.client_payload.renderer || 'webgpu' }}
+          OPTIONS: ${{ inputs.options || github.event.client_payload.options }}
+          PUBLISH: ${{ inputs.publish || github.event.client_payload.publish || 'deploy' }}
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$*"; exit 1; }
+
+          [[ "$ENGINE" == "bevy" || "$ENGINE" == "godot" ]] || fail "engine must be 'bevy' or 'godot' (got '$ENGINE')"
+          [[ "$RENDERER" == "webgpu" || "$RENDERER" == "webgl2" ]] || fail "renderer must be 'webgpu' or 'webgl2'"
+          [[ "$PUBLISH" == "deploy" || "$PUBLISH" == "pull-request" ]] || fail "publish must be 'deploy' or 'pull-request'"
+          [[ -n "$REPOSITORY" ]] || fail "repository is required"
+          [[ "$CATEGORY" =~ ^[A-Za-z0-9_-]+$ ]] || fail "category may only contain letters, numbers, - and _"
+          [[ "$SUBPATH" != *..* ]] || fail "path must stay inside the repository"
+
+          # GitHub repositories are checked out with actions/checkout (works for
+          # private repos with GAME_REPO_TOKEN); anything else is cloned with git.
+          if [[ "$REPOSITORY" =~ ^https?://github\.com/([^/]+)/([^/]+)/?$ ]]; then
+            gh_repo="${BASH_REMATCH[1]}/${BASH_REMATCH[2]%.git}"
+          elif [[ "$REPOSITORY" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+            gh_repo="${REPOSITORY%.git}"
+          else
+            gh_repo=""
+          fi
+          if [[ -n "$gh_repo" ]]; then
+            repo_url="https://github.com/$gh_repo"
+          else
+            repo_url="${REPOSITORY%.git}"
+          fi
+
+          # Split the free-form options like a shell would (quotes allowed), without running them.
+          python3 -c 'import shlex, sys; sys.stdout.write("".join(a + "\0" for a in shlex.split(sys.argv[1])))' \
+            "$OPTIONS" > "$RUNNER_TEMP/options"
+
+          project_dir="_game${SUBPATH:+/${SUBPATH#/}}"
+          project_dir="${project_dir%/}"
+
+          {
+            echo "engine=$ENGINE"
+            echo "gh_repo=$gh_repo"
+            echo "repo_url=$repo_url"
+            echo "ref=$REF"
+            echo "project_dir=$project_dir"
+            echo "publish=$PUBLISH"
+            echo "cache_key=$(echo "$repo_url/$SUBPATH" | tr -c 'A-Za-z0-9\n' '-')"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Checkout game (GitHub)
+        if: steps.params.outputs.gh_repo != ''
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ steps.params.outputs.gh_repo }}
+          ref: ${{ steps.params.outputs.ref }}
+          path: _game
+          token: ${{ secrets.GAME_REPO_TOKEN || github.token }}
+          submodules: recursive
+          lfs: true
+          persist-credentials: false
+
+      - name: Clone game (other git host)
+        if: steps.params.outputs.gh_repo == ''
+        env:
+          URL: ${{ steps.params.outputs.repo_url }}
+          REF: ${{ steps.params.outputs.ref }}
+        run: |
+          set -euo pipefail
+          git clone --recurse-submodules "$URL" _game
+          if [[ -n "$REF" ]]; then git -C _game checkout "$REF"; fi
+          git -C _game lfs pull || true
+
+      - name: Describe game commit
+        id: game
+        env:
+          PROJECT_DIR: ${{ steps.params.outputs.project_dir }}
+        run: |
+          set -euo pipefail
+          [[ -d "$PROJECT_DIR" ]] || { echo "::error::Folder not found in the game repository: ${PROJECT_DIR#_game/}"; exit 1; }
+          echo "sha=$(git -C _game rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Run pre-build command
+        if: (inputs.pre_build || github.event.client_payload.pre_build) != ''
+        env:
+          PRE_BUILD: ${{ inputs.pre_build || github.event.client_payload.pre_build }}
+        working-directory: ${{ steps.params.outputs.project_dir }}
+        run: bash -euo pipefail -c "$PRE_BUILD"
+
+      # ------------------------------------------------------------------ Bevy
+
+      - name: Setup Rust
+        if: steps.params.outputs.engine == 'bevy'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Setup the game's own Rust toolchain
+        # Games with a rust-toolchain.toml (e.g. nightly) need the wasm target on that toolchain too.
+        if: steps.params.outputs.engine == 'bevy'
+        working-directory: ${{ steps.params.outputs.project_dir }}
+        run: |
+          rustup toolchain install 2>/dev/null || true
+          rustup target add wasm32-unknown-unknown
+          [[ -f Cargo.lock ]] || cargo generate-lockfile
+
+      - name: Cache Rust build
+        if: steps.params.outputs.engine == 'bevy'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ steps.params.outputs.project_dir }} -> target
+          key: ${{ steps.params.outputs.cache_key }}
+          cache-on-failure: true
+
+      - name: Install binaryen (wasm-opt)
+        if: steps.params.outputs.engine == 'bevy'
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/binaryen"
+          curl -fsSL "https://github.com/WebAssembly/binaryen/releases/download/${BINARYEN_VERSION}/binaryen-${BINARYEN_VERSION}-x86_64-linux.tar.gz" \
+            | tar xz --strip-components 1 -C "$RUNNER_TEMP/binaryen"
+          echo "$RUNNER_TEMP/binaryen/bin" >> "$GITHUB_PATH"
+
+      - name: Find wasm-bindgen version
+        id: wbg
+        if: steps.params.outputs.engine == 'bevy'
+        env:
+          PROJECT_DIR: ${{ steps.params.outputs.project_dir }}
+        run: |
+          set -euo pipefail
+          # Cargo.lock may live in a workspace root above the game folder.
+          dir="$PROJECT_DIR"
+          while [[ ! -f "$dir/Cargo.lock" && "$dir" == _game/* ]]; do dir="$(dirname "$dir")"; done
+          version="$(grep -A1 '^name = "wasm-bindgen"$' "$dir/Cargo.lock" | sed -n 's/^version = "\(.*\)"/\1/p' | head -n1 || true)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Install wasm-bindgen-cli
+        # Prebuilt binary; if this fails, add-project.sh --install-tools compiles it instead.
+        if: steps.params.outputs.engine == 'bevy' && steps.wbg.outputs.version != ''
+        continue-on-error: true
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen@${{ steps.wbg.outputs.version }}
+
+      - name: Build Bevy game
+        if: steps.params.outputs.engine == 'bevy'
+        env:
+          PROJECT_DIR: ${{ steps.params.outputs.project_dir }}
+          TITLE: ${{ inputs.title || github.event.client_payload.title }}
+          CATEGORY: ${{ inputs.category || github.event.client_payload.category || 'games' }}
+          RENDERER: ${{ inputs.renderer || github.event.client_payload.renderer || 'webgpu' }}
+        run: |
+          set -euo pipefail
+          mapfile -d '' -t opts < "$RUNNER_TEMP/options"
+          args=("$PROJECT_DIR" --category "$CATEGORY" --renderer "$RENDERER" --install-tools)
+          [[ -n "$TITLE" ]] && args+=(--title "$TITLE")
+          bash tools/add-project.sh "${args[@]}" "${opts[@]}" 2>&1 | tee "$RUNNER_TEMP/build.log"
+
+      # ----------------------------------------------------------------- Godot
+
+      - name: Find Godot version
+        id: godot
+        if: steps.params.outputs.engine == 'godot'
+        env:
+          PROJECT_DIR: ${{ steps.params.outputs.project_dir }}
+        run: |
+          set -euo pipefail
+          proj="$(find "$PROJECT_DIR" -maxdepth 3 -name project.godot -not -path '*/.godot/*' | sort | head -n1)"
+          [[ -n "$proj" ]] || { echo "::error::No project.godot found in ${PROJECT_DIR#_game}"; exit 1; }
+          mapfile -d '' -t opts < "$RUNNER_TEMP/options"
+          want=""
+          for ((i = 0; i < ${#opts[@]}; i++)); do
+            [[ "${opts[$i]}" == "--godot-version" ]] && want="${opts[$((i + 1))]:-}"
+          done
+          if [[ -z "$want" ]]; then
+            want="$(grep -E '^config/features' "$proj" | grep -oE '"[0-9]+\.[0-9]+"' | tr -d '"' | tail -n1 || true)"
+          fi
+          [[ -n "$want" ]] || { echo "::error::Couldn't read the Godot version from project.godot; pass --godot-version in options"; exit 1; }
+          if [[ "$want" != *-* ]]; then
+            want="$(git ls-remote --tags https://github.com/godotengine/godot.git \
+              | sed -n 's#.*refs/tags/\([0-9][0-9.]*-stable\)$#\1#p' | sort -V \
+              | grep -E "^${want//./\\.}(\.[0-9]+)?-stable$" | tail -n1 || true)"
+          fi
+          [[ -n "$want" ]] || { echo "::error::No stable Godot release matches the project's version"; exit 1; }
+          echo "Using Godot $want"
+          echo "release=$want" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Godot and web export templates
+        if: steps.params.outputs.engine == 'godot'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/godot-web-export
+            ~/.local/share/godot/export_templates
+          key: godot-web-${{ steps.godot.outputs.release }}
+
+      - name: Export Godot game
+        if: steps.params.outputs.engine == 'godot'
+        env:
+          PROJECT_DIR: ${{ steps.params.outputs.project_dir }}
+          TITLE: ${{ inputs.title || github.event.client_payload.title }}
+          CATEGORY: ${{ inputs.category || github.event.client_payload.category || 'games' }}
+          RELEASE: ${{ steps.godot.outputs.release }}
+          REPO_URL: ${{ steps.params.outputs.repo_url }}
+        run: |
+          set -euo pipefail
+          mapfile -d '' -t opts < "$RUNNER_TEMP/options"
+          args=("$PROJECT_DIR" --category "$CATEGORY" --godot-version "$RELEASE" --repo "$REPO_URL" --install-tools)
+          [[ -n "$TITLE" ]] && args+=(--title "$TITLE")
+          bash tools/add-godot-project.sh "${args[@]}" "${opts[@]}" 2>&1 | tee "$RUNNER_TEMP/build.log"
+
+      # --------------------------------------------------------------- publish
+
+      - name: Find the new page
+        id: page
+        run: |
+          set -euo pipefail
+          dir="$(sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/build.log" | sed -n 's/^==> Done: \(content\/projects\/[^ ]*\) .*/\1/p' | tail -n1)"
+          [[ -n "$dir" && -f "$dir/index.md" ]] || { echo "::error::The build script didn't report the page it created"; exit 1; }
+          title="$(sed -n 's/^title = "\(.*\)"$/\1/p' "$dir/index.md" | head -n1)"
+          {
+            echo "dir=$dir"
+            echo "slug=$(basename "$dir")"
+            echo "title=$title"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "### ${title:-$(basename "$dir")}"
+            echo
+            echo "Page bundle: \`$dir\`"
+            echo
+            echo '| File | Size |'
+            echo '|---|---|'
+            find "$dir" -maxdepth 2 -type f -size +100k -printf '%P\t%s\n' | sort \
+              | awk -F'\t' '{ printf "| %s | %.1f MB |\n", $1, $2 / 1048576 }'
+          } >> "$GITHUB_STEP_SUMMARY"
+          # GitHub rejects files over 100 MB.
+          big="$(find "$dir" -type f -size +100M || true)"
+          [[ -z "$big" ]] || { echo "::error::Files over GitHub's 100 MB limit: $big"; exit 1; }
+
+      - name: Check that the site builds
+        uses: shalzz/zola-deploy-action@v0.23.6
+        env:
+          BUILD_DIR: .
+          BUILD_ONLY: true
+          TOKEN: fake-secret
+
+      - name: Upload page bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.page.outputs.slug }}
+          path: ${{ steps.page.outputs.dir }}
+          retention-days: 7
+
+      - name: Commit to ${{ github.event.repository.default_branch }}
+        id: commit
+        if: steps.params.outputs.publish == 'deploy'
+        env:
+          BRANCH: ${{ github.event.repository.default_branch }}
+          DIR: ${{ steps.page.outputs.dir }}
+          TITLE: ${{ steps.page.outputs.title }}
+          ENGINE: ${{ steps.params.outputs.engine }}
+          REPO_URL: ${{ steps.params.outputs.repo_url }}
+          GAME_SHA: ${{ steps.game.outputs.sha }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- content/projects
+          if git diff --cached --quiet; then
+            echo "Nothing changed; the published build is already up to date."
+            echo "deployed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "Publish ${TITLE} (${ENGINE})" -m "Built from ${REPO_URL} at ${GAME_SHA} by the Publish Game workflow."
+          for attempt in 1 2 3; do
+            git pull --rebase origin "$BRANCH" && git push origin "HEAD:$BRANCH" && break
+            [[ $attempt -lt 3 ]] || exit 1
+            sleep 5
+          done
+          echo "deployed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open pull request
+        if: steps.params.outputs.publish == 'pull-request'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          add-paths: content/projects
+          branch: publish/${{ steps.page.outputs.slug }}
+          delete-branch: true
+          commit-message: "Publish ${{ steps.page.outputs.title }} (${{ steps.params.outputs.engine }})"
+          title: "Publish ${{ steps.page.outputs.title }}"
+          body: |
+            Adds or updates `${{ steps.page.outputs.dir }}`.
+
+            Built from ${{ steps.params.outputs.repo_url }} at `${{ steps.game.outputs.sha }}` (${{ steps.params.outputs.engine }}).
+            The site deploys when this is merged. The page bundle is also attached to the workflow run as an artifact.
+
+            It was automatically generated by a GitHub Action.
+
+  deploy:
+    name: Deploy website
+    needs: build
+    if: needs.build.outputs.deployed == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/deploy.yml
+    with:
+      ref: ${{ github.event.repository.default_branch }}

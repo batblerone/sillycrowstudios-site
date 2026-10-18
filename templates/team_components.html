@@ -1,0 +1,182 @@
+{#-
+  Components for the team section of the about page (about.html), modelled on
+  https://bevy.org/community/people/.
+
+    content/about/_index.md                      template = "about.html" (the prose)
+    content/about/team/_index.md                 team heading, intro and role legend
+    content/about/team/<group>/_index.md         one group of cards ("Founders", "Contributors", …)
+    content/about/team/<group>/<person>.md       one card per person
+
+  Groups are sorted by `weight`, and so are the people inside them (sort_by = "weight").
+-#}
+
+
+{#- An icon link in a card's footer. `url` may be empty, in which case the icon is a
+    button that copies `label` to the clipboard (used for Discord handles without a user id). -#}
+{% component team_link(icon: string, url: string, label: string) -%}
+{%- if url %}
+<a class="team-link" href="{{ url }}" title="{{ label }}" aria-label="{{ label }}"{% if url is starting_with(pat="http") %} target="_blank" rel="noopener noreferrer me"{% endif %}>
+  {%- if icon == "website" %}
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+  {%- else %}{{ <icon name={icon} /> }}{% endif %}
+</a>
+{%- else %}
+<button type="button" class="team-link" title="{{ label }} (click to copy)" aria-label="{{ label }}, copy to clipboard" data-copy="{{ label | split(pat=': ') | last }}">
+  {{- <icon name={icon} /> -}}
+</button>
+{%- endif %}
+{%- endcomponent team_link %}
+
+
+{#- A coloured role badge. `roles` is the legend from the team section's [extra]. A legend entry
+    matches when its `name` equals the role, or when the role starts with its `prefix`. -#}
+{% component team_role(role: string, roles: array = [], big: bool = false) -%}
+{%- set found = [r for r in roles if r.name == role or (r.prefix is defined and r.prefix and role is starting_with(pat=r.prefix))] -%}
+{%- set def = found | first if found else none -%}
+<span class="team-role{% if big %} team-role--big{% endif %}"
+  {%- if def and def.color is defined and def.color %} style="--role-color: {{ def.color }}"{% endif %}>{{ role }}</span>
+{%- endcomponent team_role %}
+
+
+{#- Round profile picture, or coloured initials when there is none. -#}
+{% component team_avatar(p: map) -%}
+{%- set e = p.extra -%}
+{%- set pic = e.profile_picture if e.profile_picture is defined and e.profile_picture else "" -%}
+{%- if pic == "github" and e.github is defined and e.github -%}
+  {%- set pic = "https://github.com/" ~ e.github ~ ".png?size=160" -%}
+{%- endif -%}
+<div class="team-card__avatar">
+  {%- if pic and pic is starting_with(pat="http") %}
+  <img src="{{ pic }}" alt="{{ p.title }}'s profile picture" width="64" height="64" loading="lazy">
+  {%- elif pic %}
+    {#- A path in static/ ("/images/me.png") or a file next to the person's .md ("me.png") -#}
+    {%- if pic is starting_with(pat="/") %}
+      {%- set src_path = pic | trim_start(pat="/") %}
+    {%- elif p.colocated_path %}
+      {%- set src_path = p.colocated_path ~ pic %}
+    {%- else %}
+      {%- set src_path = (p.relative_path | regex_replace(pattern=`[^/]+$`, rep=``)) ~ pic %}
+    {%- endif %}
+    {%- set meta = get_image_metadata(path=src_path, allow_missing=true) %}
+    {%- if meta and meta.format != "svg" %}
+      {%- set img = resize_image(path=src_path, width=160, height=160, op="fill") %}
+  <img src="{{ img.url }}" alt="{{ p.title }}'s profile picture" width="64" height="64" loading="lazy">
+    {%- else %}
+  <img src="{{ get_url(path=src_path) }}" alt="{{ p.title }}'s profile picture" width="64" height="64" loading="lazy">
+    {%- endif %}
+  {%- else %}
+    {%- set h = get_hash(literal=p.title, sha_type=256, base64=false) %}
+    {%- set hue = (h[:2] | int(base=16)) * 360 // 255 %}
+  <span class="team-card__initials" style="--hue: {{ hue }}" aria-hidden="true">
+    {{- [w[:1] for w in (p.title | split(pat=" ")) if w][:2] | join(sep="") | upper -}}
+  </span>
+  {%- endif %}
+</div>
+{%- endcomponent team_avatar %}
+
+
+{#- One person. Front matter keys (all under [extra], all optional):
+      profile_picture  "github" | URL | "/static/path.png" | "file-next-to-this.md.png"
+      position         short line under the name ("Lead Developer")
+      pronouns
+      roles            ["Founder", "Programmer"] — coloured by the legend in team/_index.md
+      bio              one-liner; the Markdown body of the file is used instead when present
+      github, discord, discord_userid, mastodon ("@you@instance"), bluesky, twitter, x,
+      instagram, youtube, twitch, linkedin, itch_io, steam_developer, email, website
+      links            [{ name = "<any icon in partials/icons.html>", url = "…", title = "…" }]
+      sponsor          URL for the "Sponsor me!" link -#}
+{% component team_card(p: map, roles: array = []) -%}
+{%- set e = p.extra -%}
+{%- set slug = p.slug -%}
+<article class="team-card" id="{{ slug }}">
+  <header class="team-card__head">
+    {{ <team_avatar p={p} /> }}
+    <div class="team-card__who">
+      <h4 class="team-card__name">
+        {{- p.title -}}
+        <a class="anchor" href="#{{ slug }}" title="Copy link to {{ p.title }}" aria-label="Copy link to {{ p.title }}">#</a>
+      </h4>
+      {%- if e.position is defined and e.position %}<p class="team-card__position">{{ e.position }}</p>{% endif %}
+      {%- if e.pronouns is defined and e.pronouns %}<p class="team-card__pronouns">{{ e.pronouns }}</p>{% endif %}
+    </div>
+  </header>
+
+  {%- if e.roles is defined and e.roles %}
+  <div class="team-card__roles">
+    {%- for r in e.roles %}{{ <team_role role={r} roles={roles} /> }}{% endfor %}
+  </div>
+  {%- endif %}
+
+  {%- if p.content | striptags | trim %}
+  <div class="team-card__bio">{{ p.content | safe }}</div>
+  {%- elif e.bio is defined and e.bio %}
+  <div class="team-card__bio"><p>{{ e.bio | markdown(inline=true) | safe }}</p></div>
+  {%- endif %}
+
+  <footer class="team-card__footer">
+    <div class="team-card__links">
+      {%- if e.github is defined and e.github %}{{ <team_link icon="github" url={"https://github.com/" ~ e.github} label={e.github ~ " on GitHub"} /> }}{% endif %}
+      {%- if e.discord is defined and e.discord %}
+        {%- set did = e.discord_userid if e.discord_userid is defined and e.discord_userid else "" %}
+        {{ <team_link icon="discord" url={("https://discord.com/users/" ~ did) if did else ""} label={"Discord: " ~ e.discord} /> }}
+      {%- endif %}
+      {%- if e.mastodon is defined and e.mastodon %}
+        {%- if e.mastodon is starting_with(pat="http") %}
+        {{ <team_link icon="mastodon" url={e.mastodon} label="Mastodon" /> }}
+        {%- else %}
+        {%- set m = e.mastodon | trim_start(pat="@") | split(pat="@") %}
+        {{ <team_link icon="mastodon" url={"https://" ~ m[1] ~ "/@" ~ m[0]} label={"@" ~ m[0] ~ "@" ~ m[1]} /> }}
+        {%- endif %}
+      {%- endif %}
+      {%- if e.bluesky is defined and e.bluesky %}{{ <team_link icon="bluesky" url={"https://bsky.app/profile/" ~ e.bluesky} label={e.bluesky ~ " on Bluesky"} /> }}{% endif %}
+      {%- if e.twitter is defined and e.twitter %}{{ <team_link icon="x" url={"https://x.com/" ~ e.twitter} label={"@" ~ e.twitter ~ " on X"} /> }}{% endif %}
+      {%- if e.x is defined and e.x %}{{ <team_link icon="x" url={"https://x.com/" ~ e.x} label={"@" ~ e.x ~ " on X"} /> }}{% endif %}
+      {%- if e.instagram is defined and e.instagram %}{{ <team_link icon="instagram" url={"https://instagram.com/" ~ e.instagram} label={e.instagram ~ " on Instagram"} /> }}{% endif %}
+      {%- if e.youtube is defined and e.youtube %}{{ <team_link icon="youtube" url={e.youtube if e.youtube is starting_with(pat="http") else "https://youtube.com/@" ~ (e.youtube | trim_start(pat="@"))} label="YouTube" /> }}{% endif %}
+      {%- if e.twitch is defined and e.twitch %}{{ <team_link icon="twitch" url={"https://twitch.tv/" ~ e.twitch} label={e.twitch ~ " on Twitch"} /> }}{% endif %}
+      {%- if e.linkedin is defined and e.linkedin %}{{ <team_link icon="linkedin" url={e.linkedin if e.linkedin is starting_with(pat="http") else "https://www.linkedin.com/in/" ~ e.linkedin} label="LinkedIn" /> }}{% endif %}
+      {%- if e.itch_io is defined and e.itch_io %}{{ <team_link icon="itchio" url={"https://" ~ e.itch_io ~ ".itch.io"} label={e.itch_io ~ " on itch.io"} /> }}{% endif %}
+      {%- if e.steam_developer is defined and e.steam_developer %}{{ <team_link icon="steam" url={"https://store.steampowered.com/developer/" ~ e.steam_developer} label="Steam" /> }}{% endif %}
+      {%- if e.email is defined and e.email %}{{ <team_link icon="email" url={"mailto:" ~ e.email} label={e.email} /> }}{% endif %}
+      {%- if e.website is defined and e.website %}{{ <team_link icon="website" url={e.website} label={e.website | regex_replace(pattern=`^https?://`, rep=``) | trim_end(pat="/")} /> }}{% endif %}
+      {%- if e.links is defined %}{% for l in e.links %}
+        {{ <team_link icon={l.name} url={l.url} label={l.title if l.title is defined else (l.name | title)} /> }}
+      {%- endfor %}{% endif %}
+    </div>
+    {%- if e.sponsor is defined and e.sponsor %}
+    <a class="team-card__sponsor" href="{{ e.sponsor }}" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      Sponsor me!
+    </a>
+    {%- endif %}
+  </footer>
+</article>
+{%- endcomponent team_card %}
+
+
+{#- One group heading + its cards, then its own subgroups (recursive). -#}
+{% component team_group(path: string, roles: array = [], level: integer = 3) -%}
+{%- set s = get_section(path=path) %}
+{%- set pages = s.pages | reverse if s.extra.reverse_order is defined and s.extra.reverse_order else s.pages %}
+{%- if pages or s.subsections %}
+{%- set gid = s.extra.anchor if s.extra.anchor is defined and s.extra.anchor else s.title | slugify %}
+<section class="team-group" id="{{ gid }}">
+  <h{{ level }} class="team-group__title">
+    {{- s.title -}}
+    <a class="anchor" href="#{{ gid }}" title="Copy link to {{ s.title }}" aria-label="Copy link to {{ s.title }}">#</a>
+  </h{{ level }}>
+  {%- if s.content | striptags | trim %}
+  <div class="team-group__desc md-content">{{ s.content | safe }}</div>
+  {%- elif s.description %}
+  <p class="team-group__desc">{{ s.description | markdown(inline=true) | safe }}</p>
+  {%- endif %}
+  {%- if pages %}
+  <div class="team-grid">
+    {%- for p in pages %}{{ <team_card p={p} roles={roles} /> }}{% endfor %}
+  </div>
+  {%- endif %}
+  {%- for sub in s.subsections %}{{ <team_group path={sub} roles={roles} level={[level + 1, 5] | sort | first} /> }}{% endfor %}
+</section>
+{%- endif %}
+{%- endcomponent team_group %}
+

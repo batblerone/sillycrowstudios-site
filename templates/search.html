@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block body_class %}list{% endblock body_class %}
+
+{% block main %}
+{%- set x = config.extra -%}
+<header class="page-header">
+  <h1>{{ page.title }}&nbsp;
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+  </h1>
+  {%- if page.description %}
+  <div class="post-description">{{ page.description }}</div>
+  {%- endif %}
+</header>
+
+<div id="searchbox" class="searchbox">
+  <input id="searchInput" disabled placeholder="{{ page.extra.placeholder if page.extra.placeholder is defined else page.title ~ ' ↵' }}"
+    aria-label="search" type="search" autocomplete="off" maxlength="64">
+  <ul id="searchResults" class="searchResults" aria-label="search results"></ul>
+</div>
+{% endblock main %}
+
+{% block scripts %}
+<script>
+  window.PAPERMOD_SEARCH = {
+    index: "{{ get_url(path='search_index.' ~ lang ~ '.json') }}",
+    threshold: {{ config.extra.search.threshold }},
+    distance: {{ config.extra.search.distance }},
+    limit: {{ config.extra.search.limit }}
+  };
+</script>
+<script src="{{ get_url(path='vendor/fuse.basic.min.js') }}"></script>
+<script src="{{ get_url(path='js/search.js') }}"></script>
+{% endblock scripts %}

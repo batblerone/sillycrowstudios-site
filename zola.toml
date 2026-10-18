@@ -1,0 +1,137 @@
+base_url = "https://sillycrow.ca"
+title = "Silly Crow Studios"
+description = "A Zola port of hugo-PaperMod with a filterable blog and a WebGPU projects gallery."
+default_language = "en"
+
+# The theme ships its own Sass (themes/papermod/sass) which is always compiled.
+compile_sass = true
+minify_html = false
+generate_feeds = true
+feed_filenames = ["rss.xml"]
+
+taxonomies = [
+  { name = "tags", feed = true },
+  { name = "categories" },
+]
+
+# Powers the /search/ page and the full-text box in the blog sidebar.
+build_search_index = true
+
+
+[search]
+index_format = "fuse_json"
+include_title = true
+include_description = true
+include_content = true
+truncate_content_length = 4000
+
+[markdown]
+insert_anchor_links = "right"
+github_alerts = true
+bottom_footnotes = true
+smart_punctuation = false
+
+[markdown.highlighting]
+# PaperMod uses dark code blocks in both light and dark mode.
+theme = "github-dark"
+
+# Keys marked (page) can also be set per page/section under [extra] in front matter.
+[extra]
+
+# Home info block shown above the post list (ignored when profile_mode is enabled)
+home_info = { title = "Well how do you do fine stranger.", content = "Welcome to the very rough home of Silly Crows Studios. Say a while and listen. You are more than welcome to brows our works on the [projects page](/projects/)." }
+
+# Profile mode (centered avatar + buttons) replaces the home list when enabled
+profile_mode = { enabled = false, title = "", subtitle = "", image_url = "", image_title = "", image_size = 150, buttons = [] }
+
+# "auto" | "light" | "dark"
+default_theme = "auto"
+disable_theme_toggle = false
+disable_scroll_to_top = false
+hide_footer = false
+
+author = "Justin Clouthier"
+description = "A website for a Silly Crow"
+keywords = []
+# strftime-style (jiff) format used for post dates
+date_format = "%B %-d, %Y"
+# Site-wide image for social cards (path in static/ or absolute URL)
+og_image = ""
+# Extra stylesheets (paths in static/) and favicon
+extra_css = []
+favicon = ""
+
+# Header: logo text / icon. icon is a path inside static/ (or an absolute URL)
+label_text = "Silly Crow Studios"
+label_icon = ""
+label_icon_height = 30
+
+# Main menu. `url` may be relative ("/blog/") or absolute (opens with an external-link icon)
+menu = [
+  { name = "Blog", url = "/blog/" },
+  { name = "Projects", url = "/projects/" },
+  { name = "About", url = "/about/" },
+  { name = "Archive", url = "/archives/" },
+  { name = "Tags", url = "/tags/" },
+  { name = "Search", url = "/search/", search = true },
+]
+
+# Sections whose pages appear on the home page list
+main_sections = ["blog"]
+home_post_count = 10
+disable_special_1st_post = false
+show_share_buttons = true
+show_code_copy_buttons = true
+
+
+# [{ name = "github", url = "https://github.com/you" }] — names match PaperMod's icon set
+social_icons = [
+  { name = "github", url = "https://github.com/" },
+  { name = "mastodon", url = "https://mastodon.social/" },
+  { name = "rss", url = "/rss.xml" },
+]
+
+# Post display defaults (page)
+show_reading_time = true
+show_word_count = false
+share_buttons = ["x", "linkedin", "reddit", "facebook", "whatsapp", "telegram", "ycombinator"]
+show_post_nav_links = true
+show_breadcrumbs = true
+show_toc = false
+toc_open = false
+show_rss_button_in_section_term_list = true
+hide_summary = false
+hide_meta = false
+hide_author = false
+comments = false
+
+# "Suggest changes" link. append_file_path adds the content-relative file path.
+edit_post = { url = "", text = "Suggest Changes", append_file_path = true }
+
+footer_text = ""
+copyright = "2026 Silly Crow Studios"
+hide_copyright = false
+
+# Search page (PaperMod style). Requires build_search_index = true and index_format = "fuse_json".
+search = { threshold = 0.4, distance = 100, limit = 20 }
+
+# Filterable blog section (template = "blog.html")
+[extra.blog]
+# The section that uses template = "blog.html" (used for tag links and the home "all posts" link)
+section = "blog/_index.md"
+page_size = 10
+# Taxonomies shown as filter groups in the sidebar, in order
+filter_taxonomies = ["tags", "categories"]
+show_year_filter = true
+# When true, tag links on posts open the blog with that filter applied instead of the taxonomy page
+tag_links_to_filter = true
+
+
+# Projects gallery (template = "projects.html" / "project.html")
+[extra.projects]
+# Default renderer when a project does not set one: "webgpu" or "webgl2"
+default_renderer = "webgpu"
+default_aspect_ratio = "16 / 9"
+# Thumbnail size on cards
+thumb_width = 480
+thumb_height = 270

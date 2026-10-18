@@ -1,0 +1,45 @@
+{#-
+  Hero banner for any page or section, set in its front matter:
+
+    [extra.hero]
+    image = "banner.jpg"        # same kinds of path as the image component (see image_components.html)
+    alt = "A crow on a fence"
+    height = "medium"           # short · medium (default) · tall · screen · or any CSS height ("380px", "50vh")
+    focus = "center 35%"        # which part of the image stays in view when it's cropped
+    width = "full"              # full (edge to edge, default) · wide · content
+    show_title = true           # put the page's title + description on the banner (hides the usual heading)
+    title = ""                  # …or your own text instead
+    text = ""
+    align = "left"              # left · center · right
+    valign = "bottom"           # top · center · bottom
+    overlay = 0.4               # darkness behind the text, 0–1
+    credit = "Photo: Someone"   # small credit in the corner
+
+  Leave [extra.hero] out (or set hidden = true) for no banner.
+-#}
+{%- if page is defined and page -%}{%- set hcur = page -%}
+{%- elif section is defined and section -%}{%- set hcur = section -%}
+{%- else -%}{%- set hcur = none -%}{%- endif -%}
+{%- if hcur and hcur.extra.hero is defined and hcur.extra.hero and hcur.extra.hero.image is defined and hcur.extra.hero.image and not (hcur.extra.hero.hidden is defined and hcur.extra.hero.hidden) -%}
+{%- set hero = hcur.extra.hero -%}
+{%- set show_title = hero.show_title is defined and hero.show_title -%}
+{%- set h_title = hcur.title if show_title else (hero.title if hero.title is defined else "") -%}
+{%- set h_text = (hcur.description or "") if show_title else (hero.text if hero.text is defined else "") -%}
+{%- set h_width = hero.width if hero.width is defined and hero.width else "full" -%}
+<div class="page-hero page-hero--{{ h_width }}">
+  {{- <image src={hero.image}
+      alt={hero.alt if hero.alt is defined else ""}
+      position="hero"
+      height={(hero.height if hero.height is defined and hero.height else "medium") ~ ""}
+      focus={hero.focus if hero.focus is defined else ""}
+      title={h_title or ""}
+      text={h_text or ""}
+      align={hero.align if hero.align is defined else ""}
+      valign={hero.valign if hero.valign is defined else ""}
+      overlay={(hero.overlay if hero.overlay is defined else "") ~ ""}
+      credit={hero.credit if hero.credit is defined else ""}
+      rounded={h_width != "full"}
+      page={page if page is defined else none}
+      section={section if section is defined else none} /> -}}
+</div>
+{%- endif -%}

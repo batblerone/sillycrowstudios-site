@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block body_class %}list{% endblock body_class %}
+
+{% block main %}
+{%- set x = config.extra -%}
+<header class="page-header">
+  <h1>{{ page.title }}</h1>
+  {%- if page.description %}
+  <div class="post-description">{{ page.description }}</div>
+  {%- endif %}
+</header>
+
+{%- set sections = page.extra.sections if page.extra.sections is defined else x.main_sections %}
+{%- set_global all_pages = [] %}
+{%- for s in sections %}
+  {%- set ms = get_section(path=s ~ "/_index.md", allow_missing=true) %}
+  {%- if ms %}{% set_global all_pages = [...all_pages, ...[p for p in ms.pages if p.date]] %}{% endif %}
+{%- endfor %}
+{%- set all_pages = all_pages | sort(attribute="date") | reverse %}
+
+{%- for year in [p.year for p in all_pages] | unique | sort | reverse %}
+{%- set year_pages = [p for p in all_pages if p.year == year] %}
+<div class="archive-year">
+  <h2 class="archive-year-header" id="{{ year }}">
+    <a class="archive-header-link" href="#{{ year }}">{{ year }}</a>
+    <sup class="archive-count">&nbsp;{{ year_pages | length }}</sup>
+  </h2>
+  {%- for month in [p.month for p in year_pages] | unique | sort | reverse %}
+  {%- set month_pages = [p for p in year_pages if p.month == month] %}
+  {%- set month_name = month_pages[0].date | date(format="%B") %}
+  <div class="archive-month">
+    <h3 class="archive-month-header" id="{{ year }}-{{ month_name }}">
+      <a class="archive-header-link" href="#{{ year }}-{{ month_name }}">{{ month_name }}</a>
+      <sup class="archive-count">&nbsp;{{ month_pages | length }}</sup>
+    </h3>
+    <div class="archive-posts">
+      {%- for p in month_pages %}
+      <div class="archive-entry">
+        <h3 class="archive-entry-title entry-hint-parent">
+          {{- p.title -}}
+          {%- if p.draft %}{{ <draft_hint size={15} /> }}{% endif %}
+        </h3>
+        <div class="archive-meta">{{ <post_meta p={p} /> }}</div>
+        <a class="entry-link" aria-label="post link to {{ p.title }}" href="{{ p.permalink }}"></a>
+      </div>
+      {%- endfor %}
+    </div>
+  </div>
+  {%- endfor %}
+</div>
+{%- endfor %}
+{% endblock main %}

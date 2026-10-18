@@ -1,0 +1,47 @@
+name: Deploy
+
+# Builds the Zola site and publishes it to GitHub Pages (the `gh-pages` branch),
+# the same way bevy-website does. The custom domain comes from static/CNAME
+# (sillycrow.ca), which Zola copies into the build so every deploy keeps it.
+#
+# Runs on every push to main, on demand, and is called by publish-game.yml
+# after a new game has been committed.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        description: "Git ref to build (defaults to the triggering ref)"
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+# Never run two deploys at once; a newer one waits for the running one.
+concurrency:
+  group: deploy-pages
+  cancel-in-progress: false
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # When called from publish-game.yml this is "main", so the freshly
+          # committed game is included (github.sha would be the older commit).
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: "Build and deploy website"
+        # When updating to a newer version, keep it at Zola 0.23 or newer:
+        # the templates use Tera 2 components.
+        uses: shalzz/zola-deploy-action@v0.23.6
+        env:
+          PAGES_BRANCH: gh-pages
+          BUILD_DIR: .
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
