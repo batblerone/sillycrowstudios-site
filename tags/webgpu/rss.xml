@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+      <title>Silly Crow Studios - webgpu</title>
+      <link>https://sillycrow.ca</link>
+      <description>A Zola port of hugo-PaperMod with a filterable blog and a WebGPU projects gallery.</description>
+      <generator>Zola</generator>
+      <language>en</language>
+      <atom:link href="https://sillycrow.ca/tags/webgpu/rss.xml" rel="self" type="application/rss+xml"/>
+      <lastBuildDate>Mon, 14 Sep 2026 00:00:00 +0000</lastBuildDate>
+      <item>
+          <title>Flyaway</title>
+          <pubDate>Mon, 14 Sep 2026 00:00:00 +0000</pubDate>
+          <author>Unknown</author>
+          <link>https://sillycrow.ca/projects/games/flyaway/</link>
+          <guid>https://sillycrow.ca/projects/games/flyaway/</guid>
+          <description xml:base="https://sillycrow.ca/projects/games/flyaway/">&lt;p&gt;Source code is available for perusal below. This is why it&#39;s taking longer for game three, I wanted to move things back to pure rust for the sake of it. Enjoy!&lt;/p&gt;
+</description>
+      </item>
+    </channel>
+</rss>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="auto">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Silly Crow Studios</title>
+<meta name="description" content="A Zola port of hugo-PaperMod with a filterable blog and a WebGPU projects gallery.">
+<meta name="author" content="Justin Clouthier">
+<link rel="canonical" href="https://sillycrow.ca/">
+<link rel="stylesheet" href="https://sillycrow.ca/sillycrow.css">
+<link rel="icon" href="https://sillycrow.ca/favicon.svg">
+<meta name="theme-color" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" title="Silly Crow Studios" href="https://sillycrow.ca/rss.xml"><meta property="og:title" content="Silly Crow Studios">
+<meta property="og:description" content="A Zola port of hugo-PaperMod with a filterable blog and a WebGPU projects gallery.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sillycrow.ca/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Silly Crow Studios">
+<meta name="twitter:description" content="A Zola port of hugo-PaperMod with a filterable blog and a WebGPU projects gallery.">
+<noscript>
+  <style>
+    #theme-toggle, .top-link { display: none; }
+  </style>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --theme: rgb(29, 30, 32); --entry: rgb(46, 46, 51); --primary: rgb(218, 218, 219);
+        --secondary: rgb(155, 156, 157); --tertiary: rgb(65, 66, 68); --content: rgb(196, 196, 197);
+        --code-block-bg: rgb(46, 46, 51); --code-bg: rgb(55, 56, 62); --border: rgb(51, 51, 51);
+        color-scheme: dark;
+      }
+      .list { background: var(--theme); }
+      .toc { background: var(--entry); }
+    }
+  </style>
+</noscript>
+<script>
+  (function () {
+    var d = document.documentElement, pref = null;
+    try { pref = localStorage.getItem("pref-theme"); } catch (e) {}
+    var dflt = "auto";
+    if (pref === "dark" || pref === "light") { d.dataset.theme = pref; }
+    else if (dflt === "dark" || dflt === "light") { d.dataset.theme = dflt; }
+    else { d.dataset.theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; }
+  })();
+</script>
+
+</head><body class="list has-hero-title" id="top"><header class="header">
+  <nav class="header-nav">
+    <div class="logo">
+      <a href="https://sillycrow.ca/" accesskey="h" title="Silly Crow Studios (Alt + H)">Silly Crow Studios</a>
+      <div class="logo-switches">
+        <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+          <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <ul id="menu" class="menu">
+      <li>
+        <a href="https://sillycrow.ca/blog/" title="Blog">
+          <span>Blog</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/projects/" title="Projects">
+          <span>Projects</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/about/" title="About">
+          <span>About</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/archives/" title="Archive">
+          <span>Archive</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/tags/" title="Tags">
+          <span>Tags</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/search/" title="Search (Alt + /)" accesskey="/">
+          <span>Search</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>
+<div class="page-hero page-hero--full"><figure class="sc-image sc-image--hero is-cropped" style="--img-height: clamp(260px, 42vh, 460px); --img-focus: center 35%"><div class="sc-image__frame"><img src="https://sillycrow.ca/processed_images/cape_breton_highlands_park.d33289c6bd5979f4.jpg" srcset="https://sillycrow.ca/processed_images/cape_breton_highlands_park.ac036a7dacbdf34f.jpg 480w, https://sillycrow.ca/processed_images/cape_breton_highlands_park.fc29cf55a6874258.jpg 800w, https://sillycrow.ca/processed_images/cape_breton_highlands_park.8758cb83e79eac53.jpg 1200w, https://sillycrow.ca/processed_images/cape_breton_highlands_park.b7a8fbb5804c1f0e.jpg 1600w, https://sillycrow.ca/processed_images/cape_breton_highlands_park.2d97c20469b5ba82.jpg 2000w, https://sillycrow.ca/processed_images/cape_breton_highlands_park.d33289c6bd5979f4.jpg 2400w" sizes="100vw" width="2400" height="1800" alt="" fetchpriority="high" decoding="async"></div></figure></div>
+  <main class="main">
+<article class="first-entry home-info">
+  <header class="entry-header">
+    <h1>Well how do you do fine stranger.</h1>
+  </header>
+  <div class="entry-content md-content">
+    <p>Welcome to the very rough home of Silly Crows Studios. Say a while and listen. You are more than welcome to brows our works on the <a href="/projects/">projects page</a>.</p>
+
+  </div>
+  <footer class="entry-footer">
+    <div class="social-icons">
+  <a href="https://github.com/" target="_blank" rel="noopener noreferrer me" title="Github">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path
+        d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+    </path>
+</svg>
+  </a>
+  <a href="https://mastodon.social/" target="_blank" rel="noopener noreferrer me" title="Mastodon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path
+        d="M21.58 13.913c-.29 1.469-2.592 3.121-5.238 3.396-1.379.184-2.737.368-4.185.276-2.368-.092-4.237-.551-4.237-.551 0 .184.014.459.043.643.308 2.294 2.317 2.478 4.22 2.57 1.922 0 3.633-.46 3.633-.46l.079 1.653s-1.344.734-3.738.918c-1.32.091-2.96-.092-4.869-.551-4.14-1.102-4.853-5.507-4.961-10.005-.034-1.285-.013-2.57-.013-3.58 0-4.589 3-5.966 3-5.966 1.513-.734 4.11-1.01 6.808-1.01h.067c2.699 0 5.296.276 6.81 1.01 0 0 3 1.377 3 5.967 0 0 .037 3.304-.419 5.69"
+        stroke="currentColor" />
+    <path
+        d="M17.832 8.633v5h-1.978V8.78c0-1.023-.43-1.542-1.29-1.542-.95 0-1.427.616-1.427 1.834v2.655H11.17V9.072c0-1.218-.476-1.834-1.427-1.834-.86 0-1.29.52-1.29 1.542v4.852H6.475V8.633c0-1.022.26-1.834.782-2.434.538-.6 1.243-.909 2.118-.909 1.012 0 1.779.39 2.286 1.169l.492.827.493-.827c.507-.78 1.274-1.169 2.286-1.169.875 0 1.58.308 2.118.909.522.6.782 1.412.782 2.434"
+        fill="currentColor" stroke="none" />
+</svg>
+  </a>
+  <a href="/rss.xml" target="_blank" rel="noopener noreferrer me" title="Rss">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 11a9 9 0 0 1 9 9" />
+    <path d="M4 4a16 16 0 0 1 16 16" />
+    <circle cx="5" cy="19" r="1" />
+</svg>
+  </a>
+</div>
+  </footer>
+</article>
+    <article class="post-entry">
+  
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Game Two of Twenty
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Game two, and the long road ahead to making something fun.</p>
+  </div>
+  <footer class="entry-footer"><span class="entry-meta"><span title="2026-09-14">September 14, 2026</span>&nbsp;·&nbsp;<span>3 min</span>&nbsp;·&nbsp;<span>Justin Clouthier</span></span></footer>
+  <a class="entry-link" aria-label="post link to Game Two of Twenty" href="https://sillycrow.ca/blog/20260914-game-two-of-twenty/"></a>
+</article>
+    <article class="post-entry">
+  
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">Starting the 20 Games Challenge
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>What is 20 games anyway? We are about to find out.</p>
+  </div>
+  <footer class="entry-footer"><span class="entry-meta"><span title="2026-07-27">July 27, 2026</span>&nbsp;·&nbsp;<span>4 min</span>&nbsp;·&nbsp;<span>Justin Clouthier</span></span></footer>
+  <a class="entry-link" aria-label="post link to Starting the 20 Games Challenge" href="https://sillycrow.ca/blog/20260727-the-20-games/"></a>
+</article>
+    <article class="post-entry">
+  
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">The Beginning of whatever this is
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>An introduction to Batblerone (Justin Clouthier), how I got here and where Silly Crow may be going.</p>
+  </div>
+  <footer class="entry-footer"><span class="entry-meta"><span title="2026-07-14">July 14, 2026</span>&nbsp;·&nbsp;<span>3 min</span>&nbsp;·&nbsp;<span>Justin Clouthier</span></span></footer>
+  <a class="entry-link" aria-label="post link to The Beginning of whatever this is" href="https://sillycrow.ca/blog/20260717-the-beginning/"></a>
+</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="next" href="https://sillycrow.ca/blog/">All posts&nbsp;»</a>
+  </nav>
+</footer>
+
+  </main>
+<footer class="footer">
+    <span>2026 Silly Crow Studios</span> ·<span>
+    Powered by
+    <a href="https://www.getzola.org/" rel="noopener" target="_blank">Zola</a> &amp;
+    <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+  </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+    <polyline points="17 11 12 6 7 11"></polyline>
+    <polyline points="17 18 12 13 7 18"></polyline>
+  </svg>
+</a>
+
+<script>
+  (function () {
+    var menu = document.getElementById("menu");
+    if (menu) {
+      try {
+        var pos = localStorage.getItem("menu-scroll-position");
+        if (pos) menu.scrollLeft = parseInt(pos, 10);
+        menu.addEventListener("scroll", function () { localStorage.setItem("menu-scroll-position", menu.scrollLeft); });
+      } catch (e) {}
+    }
+
+    // Team "#" links on the about page copy their link instead (js/team.js)
+    document.querySelectorAll('a[href^="#"]:not(.team .anchor)').forEach(function (anchor) {
+      anchor.addEventListener("click", function (e) {
+        var id = this.getAttribute("href").substr(1);
+        var target = id && document.querySelector("[id='" + decodeURIComponent(id) + "']");
+        if (!target) return;
+        e.preventDefault();
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        target.scrollIntoView(reduce ? undefined : { behavior: "smooth" });
+        if (id === "top") history.replaceState(null, null, " ");
+        else history.pushState(null, null, "#" + id);
+      });
+    });
+    var toplink = document.getElementById("top-link");
+    window.addEventListener("scroll", function () {
+      var t = window.innerHeight;
+      var y = document.body.scrollTop || document.documentElement.scrollTop;
+      toplink.classList.toggle("hidden", y <= t);
+    }, { passive: true });
+    var toggle = document.getElementById("theme-toggle");
+    if (toggle) toggle.addEventListener("click", function () {
+      var html = document.documentElement;
+      var next = html.dataset.theme === "dark" ? "light" : "dark";
+      html.dataset.theme = next;
+      try { localStorage.setItem("pref-theme", next); } catch (e) {}
+      document.dispatchEvent(new CustomEvent("papermod:theme", { detail: next }));
+    });
+  })();
+</script>
+
+  </body>
+</html>
