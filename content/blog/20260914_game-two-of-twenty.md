@@ -1,6 +1,7 @@
 +++
 title = "Game Two of Twenty"
 date = 2026-09-14
+update = 2026-10-18
 description = "Game two, and the long road ahead to making something fun."
 
 [taxonomies]
@@ -10,6 +11,8 @@ categories = ["Game Dev"]
 [extra]
 show_toc = false
 +++
+
+EDIT: Updated to reflect the change in godot-rust to a pure bevy build of the game.
 
 # Alright, here we go
 
