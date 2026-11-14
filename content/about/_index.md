@@ -15,11 +15,6 @@ Simply put, it is a fever dream. A wild ambition of a lone person who is just tr
 # Why not use your actual name, Justin?
 Cause it's boring. The crows are silly, absolutely nutty I say and that is fun. That is what life is all about, little moments of joy and beloning that make things seem like it is worth it.
 
-So yes, I am **Justin Clouthier** a chemical engineer by study, and a whatever I need to be engineer by practice. With development, game making, the entirety of the outdoors as hobbies join me on this adventure as I discover what little moments I can find that bring joy.
-Silly Crow Studios is a small, very rough-around-the-edges game studio started by
-Justin Clouthier — a systems engineer who decided he wanted to make something that brings joy.
+So yes, I am **Justin Clouthier** a chemical engineer by study, and a whatever I need to be engineer by practice. With sports, cosplay, playing in the mud, and the entirety of the outdoors as hobbies what is one more? Join me on this adventure as I discover what little moments I can find that bring joy. Though the guise of Silly Crow Studios, a small endavour by an engineer who decided he wanted to make games that are fun.
 
-Right now that means working through the [20 Games Challenge](https://20_games_challenge.gitlab.io/)
-one game at a time, building with [Bevy](https://bevy.org) and writing about it on the
-[blog](@/blog/_index.md). Every finished game ends up on the [projects page](@/projects/_index.md),
-where you can play it right in your browser.
+So far, that means working through the [20 Games Challenge](https://20_games_challenge.gitlab.io/) most are built with [Bevy](https://bevy.org). I somtimes, probably should more, write about things in the [blog](@/blog/_index.md). Every finished game ends up on the [projects page](@/projects/_index.md) too, where you can play it right in your browser.

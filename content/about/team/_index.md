@@ -17,23 +17,23 @@ page_template = "team-member.html"
 [[extra.roles]]
 name = "Founder"
 color = "rgb(214, 162, 32)"
-description = "started Silly Crow Studios and decides where it flies next."
+# description = "started Silly Crow Studios and decides where it flies next."
 
 [[extra.roles]]
 name = "Programmer"
 color = "rgb(92, 142, 255)"
-description = "write the Rust that makes the games go."
+# description = "write the Rust that makes the games go."
 
 [[extra.roles]]
 name = "Artist"
 color = "rgb(214, 92, 224)"
-description = "draw, model and animate everything you see."
+# description = "draw, model and animate everything you see."
 
 [[extra.roles]]
 name = "Audio"
 color = "rgb(46, 170, 110)"
-description = "make the music and sound effects."
-
+# description = "make the music and sound effects."
+ 
 # A prefix entry: "Playtester-Web", "Playtester-Desktop", … all share this colour.
 [[extra.roles]]
 name = "Playtester"
@@ -41,4 +41,4 @@ prefix = "Playtester"
 color = "rgb(230, 120, 60)"
 +++
 
-The people behind the Studios
+The people behind the Studio
