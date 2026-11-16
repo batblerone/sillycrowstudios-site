@@ -17,7 +17,6 @@ taxonomies = [
 # Powers the /search/ page and the full-text box in the blog sidebar.
 build_search_index = true
 
-
 [search]
 index_format = "fuse_json"
 include_title = true
@@ -37,7 +36,6 @@ theme = "github-dark"
 
 # Keys marked (page) can also be set per page/section under [extra] in front matter.
 [extra]
-
 # Home info block shown above the post list (ignored when profile_mode is enabled)
 home_info = { title = "Well how do you do fine stranger.", content = "Welcome to the very rough home of Silly Crows Studios. Say a while and listen. You are more than welcome to brows our works on the [projects page](/projects/)." }
 
@@ -83,12 +81,10 @@ disable_special_1st_post = false
 show_share_buttons = true
 show_code_copy_buttons = true
 
-
 # [{ name = "github", url = "https://github.com/you" }] — names match PaperMod's icon set
 social_icons = [
-  { name = "github", url = "https://github.com/" },
-  { name = "mastodon", url = "https://mastodon.social/" },
-  { name = "rss", url = "/rss.xml" },
+  { name = "github", url = "https://github.com/batblerone/sillycrowstudios-site.git" },
+  { name = "itchio", url = "https://itch.io/profile/batblerone" },
 ]
 
 # Post display defaults (page)
@@ -125,7 +121,6 @@ filter_taxonomies = ["tags", "categories"]
 show_year_filter = true
 # When true, tag links on posts open the blog with that filter applied instead of the taxonomy page
 tag_links_to_filter = true
-
 
 # Projects gallery (template = "projects.html" / "project.html")
 [extra.projects]
