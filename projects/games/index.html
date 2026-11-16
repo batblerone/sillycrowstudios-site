@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="auto">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Games | Silly Crow Studios</title>
+<meta name="description" content="A Zola port of hugo-PaperMod with a filterable blog and a WebGPU projects gallery.">
+<meta name="author" content="Justin Clouthier">
+<link rel="canonical" href="https://sillycrow.ca/projects/games/">
+<link rel="stylesheet" href="https://sillycrow.ca/sillycrow.css">
+<link rel="icon" href="https://sillycrow.ca/favicon.svg">
+<meta name="theme-color" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" title="Silly Crow Studios" href="https://sillycrow.ca/rss.xml"><meta property="og:title" content="Games">
+<meta property="og:description" content="A Zola port of hugo-PaperMod with a filterable blog and a WebGPU projects gallery.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sillycrow.ca/projects/games/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Games">
+<meta name="twitter:description" content="A Zola port of hugo-PaperMod with a filterable blog and a WebGPU projects gallery.">
+<noscript>
+  <style>
+    #theme-toggle, .top-link { display: none; }
+  </style>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --theme: rgb(29, 30, 32); --entry: rgb(46, 46, 51); --primary: rgb(218, 218, 219);
+        --secondary: rgb(155, 156, 157); --tertiary: rgb(65, 66, 68); --content: rgb(196, 196, 197);
+        --code-block-bg: rgb(46, 46, 51); --code-bg: rgb(55, 56, 62); --border: rgb(51, 51, 51);
+        color-scheme: dark;
+      }
+      .list { background: var(--theme); }
+      .toc { background: var(--entry); }
+    }
+  </style>
+</noscript>
+<script>
+  (function () {
+    var d = document.documentElement, pref = null;
+    try { pref = localStorage.getItem("pref-theme"); } catch (e) {}
+    var dflt = "auto";
+    if (pref === "dark" || pref === "light") { d.dataset.theme = pref; }
+    else if (dflt === "dark" || dflt === "light") { d.dataset.theme = dflt; }
+    else { d.dataset.theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; }
+  })();
+</script>
+
+</head><body class="list" id="top"><header class="header">
+  <nav class="header-nav">
+    <div class="logo">
+      <a href="https://sillycrow.ca/" accesskey="h" title="Silly Crow Studios (Alt + H)">Silly Crow Studios</a>
+      <div class="logo-switches">
+        <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+          <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <ul id="menu" class="menu">
+      <li>
+        <a href="https://sillycrow.ca/blog/" title="Blog">
+          <span>Blog</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/projects/" title="Projects">
+          <span class="active">Projects</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/about/" title="About">
+          <span>About</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/archives/" title="Archive">
+          <span>Archive</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/tags/" title="Tags">
+          <span>Tags</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/search/" title="Search (Alt + /)" accesskey="/">
+          <span>Search</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+  <main class="main wide"><header class="page-header"><nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+  <a href="https://sillycrow.ca/">Home</a>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+  <a href="https://sillycrow.ca/projects/">Projects</a>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+</nav>
+  <h1>Games</h1>
+</header>
+
+<div class="projects-layout" id="projects">
+  <aside class="projects-sidebar" aria-label="Project categories">
+    <div class="projects-sidebar__inner">
+      <label class="filter-label" for="project-q">Search</label>
+      <div class="blog-search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="project-q" class="pm-input" type="search" placeholder="Search projects  ( / )" autocomplete="off" data-project-q>
+      </div>
+
+      <div class="project-renderer-filter" role="group" aria-label="Renderer">
+        <span class="filter-label">Renderer</span>
+        <div class="chip-list">
+          <button type="button" class="pm-chip" data-renderer-filter="all" aria-pressed="true">All</button>
+          <button type="button" class="pm-chip" data-renderer-filter="webgpu" aria-pressed="false">WebGPU</button>
+          <button type="button" class="pm-chip" data-renderer-filter="webgl2" aria-pressed="false">WebGL2</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="projects-main">
+    <div class="gpu-status" data-gpu-status hidden></div>
+    <section class="project-group" data-group>
+      <div class="project-grid"><div class="project-cell" data-project
+  data-title="Flyaway"
+  data-renderer="webgpu"
+  data-search="flyaway fly away, fly! a small endless flyer about a hungry crow. bevy webgpu">
+  <a class="project-card" href="https://sillycrow.ca/projects/games/flyaway/">
+    <div class="project-card__banner">
+      <img src="https://sillycrow.ca/processed_images/cover.744cfeaf8696f8dd.png" width="480" height="270" alt="" loading="lazy">
+      <span class="project-badge project-badge--webgpu">WebGPU</span>
+      <span class="project-card__play" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </span>
+    </div>
+    <div class="project-card__body">
+      <h3 class="project-card__title">Flyaway</h3>
+      <p class="project-card__desc">Fly Away, Fly! A small endless flyer about a hungry crow.</p>
+      <div class="project-card__tags"><span class="project-tag" title="Bevy version">Bevy 0.20</span><span class="project-tag">bevy</span><span class="project-tag">webgpu</span>
+      </div>
+    </div>
+  </a>
+</div>
+      </div>
+    </section>
+
+    <p class="projects-empty" data-projects-empty hidden>No projects match your search.</p>
+  </div>
+</div>
+
+  </main>
+<footer class="footer">
+    <span>2026 Silly Crow Studios</span> ·<span>
+    Powered by
+    <a href="https://www.getzola.org/" rel="noopener" target="_blank">Zola</a> &amp;
+    <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+  </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+    <polyline points="17 11 12 6 7 11"></polyline>
+    <polyline points="17 18 12 13 7 18"></polyline>
+  </svg>
+</a>
+
+<script>
+  (function () {
+    var menu = document.getElementById("menu");
+    if (menu) {
+      try {
+        var pos = localStorage.getItem("menu-scroll-position");
+        if (pos) menu.scrollLeft = parseInt(pos, 10);
+        menu.addEventListener("scroll", function () { localStorage.setItem("menu-scroll-position", menu.scrollLeft); });
+      } catch (e) {}
+    }
+
+    // Team "#" links on the about page copy their link instead (js/team.js)
+    document.querySelectorAll('a[href^="#"]:not(.team .anchor)').forEach(function (anchor) {
+      anchor.addEventListener("click", function (e) {
+        var id = this.getAttribute("href").substr(1);
+        var target = id && document.querySelector("[id='" + decodeURIComponent(id) + "']");
+        if (!target) return;
+        e.preventDefault();
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        target.scrollIntoView(reduce ? undefined : { behavior: "smooth" });
+        if (id === "top") history.replaceState(null, null, " ");
+        else history.pushState(null, null, "#" + id);
+      });
+    });
+    var toplink = document.getElementById("top-link");
+    window.addEventListener("scroll", function () {
+      var t = window.innerHeight;
+      var y = document.body.scrollTop || document.documentElement.scrollTop;
+      toplink.classList.toggle("hidden", y <= t);
+    }, { passive: true });
+    var toggle = document.getElementById("theme-toggle");
+    if (toggle) toggle.addEventListener("click", function () {
+      var html = document.documentElement;
+      var next = html.dataset.theme === "dark" ? "light" : "dark";
+      html.dataset.theme = next;
+      try { localStorage.setItem("pref-theme", next); } catch (e) {}
+      document.dispatchEvent(new CustomEvent("papermod:theme", { detail: next }));
+    });
+  })();
+</script>
+
+<script src="https://sillycrow.ca/js/projects.js" defer></script>
+
+  </body>
+</html>

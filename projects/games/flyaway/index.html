@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="auto">
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Flyaway | Silly Crow Studios</title>
+<meta name="keywords" content="bevy, webgpu">
+<meta name="description" content="Fly Away, Fly! A small endless flyer about a hungry crow.">
+<meta name="author" content="Justin Clouthier">
+<link rel="canonical" href="https://sillycrow.ca/projects/games/flyaway/">
+<link rel="stylesheet" href="https://sillycrow.ca/sillycrow.css">
+<link rel="icon" href="https://sillycrow.ca/favicon.svg">
+<meta name="theme-color" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" title="Silly Crow Studios" href="https://sillycrow.ca/rss.xml"><meta property="og:title" content="Flyaway">
+<meta property="og:description" content="Fly Away, Fly! A small endless flyer about a hungry crow.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://sillycrow.ca/projects/games/flyaway/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Flyaway">
+<meta name="twitter:description" content="Fly Away, Fly! A small endless flyer about a hungry crow.">
+<meta property="article:published_time" content="2026-09-14">
+<noscript>
+  <style>
+    #theme-toggle, .top-link { display: none; }
+  </style>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --theme: rgb(29, 30, 32); --entry: rgb(46, 46, 51); --primary: rgb(218, 218, 219);
+        --secondary: rgb(155, 156, 157); --tertiary: rgb(65, 66, 68); --content: rgb(196, 196, 197);
+        --code-block-bg: rgb(46, 46, 51); --code-bg: rgb(55, 56, 62); --border: rgb(51, 51, 51);
+        color-scheme: dark;
+      }
+      .list { background: var(--theme); }
+      .toc { background: var(--entry); }
+    }
+  </style>
+</noscript>
+<script>
+  (function () {
+    var d = document.documentElement, pref = null;
+    try { pref = localStorage.getItem("pref-theme"); } catch (e) {}
+    var dflt = "auto";
+    if (pref === "dark" || pref === "light") { d.dataset.theme = pref; }
+    else if (dflt === "dark" || dflt === "light") { d.dataset.theme = dflt; }
+    else { d.dataset.theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; }
+  })();
+</script>
+
+</head><body class="project-page" id="top"><header class="header">
+  <nav class="header-nav">
+    <div class="logo">
+      <a href="https://sillycrow.ca/" accesskey="h" title="Silly Crow Studios (Alt + H)">Silly Crow Studios</a>
+      <div class="logo-switches">
+        <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+          <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <ul id="menu" class="menu">
+      <li>
+        <a href="https://sillycrow.ca/blog/" title="Blog">
+          <span>Blog</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/projects/" title="Projects">
+          <span class="active">Projects</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/about/" title="About">
+          <span>About</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/archives/" title="Archive">
+          <span>Archive</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/tags/" title="Tags">
+          <span>Tags</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://sillycrow.ca/search/" title="Search (Alt + /)" accesskey="/">
+          <span>Search</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+  <main class="main wide"><article class="project">
+  <header class="project__header">
+    <div class="project__crumbs">
+      <a class="project__back" href="https://sillycrow.ca/projects/">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Projects
+      </a>
+      <span class="sep">/</span><a href="https://sillycrow.ca/projects/#games">Games</a>
+    </div>
+    <h1 class="project__title entry-hint-parent">Flyaway</h1><p class="project__desc">Fly Away, Fly! A small endless flyer about a hungry crow.</p>
+    <div class="project__meta"><span class="project-badge project-badge--webgpu static">WebGPU</span><span class="project-tag">Bevy 0.20</span><a class="project-tag" href="https://sillycrow.ca/tags/bevy/">#bevy</a><a class="project-tag" href="https://sillycrow.ca/tags/webgpu/">#webgpu</a><span class="project__date">September 14, 2026</span>
+    </div>
+    <div class="project__actions">
+      <a class="pm-btn ghost" href="https://sillycrow.ca/projects/games/flyaway/source.zip" download>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Source (.zip)
+      </a>
+    </div>
+  </header>
+  <div class="game" id="game"
+    data-js="https://sillycrow.ca/projects/games/flyaway/game.js"
+    data-wasm="https://sillycrow.ca/projects/games/flyaway/game_bg.wasm"
+    data-renderer="webgpu"
+    data-autoplay="false"
+    style="--game-aspect: 16 / 9">
+    <div class="game__frame" data-frame>
+      <canvas id="bevy" class="game__canvas" tabindex="0" aria-label="Flyaway game canvas"></canvas>
+
+      <div class="game__overlay" data-overlay style="background-image: url('https://sillycrow.ca/projects/games/flyaway/cover.png')">
+        <button type="button" class="game__play" data-play aria-label="Play Flyaway">
+          <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="game__play-label">
+          <strong>Click to play</strong>
+          <span data-size-hint>Runs in your browser with WebGPU</span>
+        </div>
+      </div>
+
+      <div class="game__progress" data-progress hidden>
+        <div class="game__progress-file" data-progress-file>Loading…</div>
+        <div class="game__progress-track"><div class="game__progress-bar" data-progress-bar></div></div>
+      </div>
+
+      <div class="game__error" data-error hidden>
+        <strong>Couldn’t start this project.</strong>
+        <p data-error-text></p>
+        <button type="button" class="pm-btn" data-reload>Reload page</button>
+      </div>
+
+      <noscript><div class="game__error"><strong>JavaScript is required to run this project.</strong></div></noscript>
+    </div>
+
+    <div class="game__bar">
+      <div class="game__support" data-support></div>
+      <div class="game__bar-actions">
+        <button type="button" class="pm-btn ghost small" data-fullscreen title="Fullscreen (F)" disabled>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          Fullscreen
+        </button>
+        <button type="button" class="pm-btn ghost small" data-reload title="Restart" disabled>
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Restart
+        </button>
+      </div>
+    </div>
+
+    <aside class="game__callout" data-gpu-warning hidden>
+      <strong>WebGPU not available.</strong>
+      This project is built for WebGPU, which needs a recent Chrome, Edge or Safari (or Firefox with WebGPU enabled)
+      on a device with a supported GPU. You can still try to run it, or browse the source below.
+    </aside>
+  </div>
+  <section class="project__controls">
+    <h2 class="project__h2">Controls</h2>
+    <dl class="controls-list">
+      <div><dt><kbd>Space, Left Mouse</kbd></dt><dd>Fly</dd></div>
+      <div><dt><kbd>Escape</kbd></dt><dd>Pause</dd></div>
+    </dl>
+  </section>
+  <div class="post-content md-content project__content">
+    <p>Source code is available for perusal below. This is why it's taking longer for game three, I wanted to move things back to pure rust for the sake of it. Enjoy!</p>
+
+  </div>
+  <section class="project__source">
+    <h2 class="project__h2" id="source">Source</h2>
+    <div class="source-browser" id="source-browser"
+      data-zip="https://sillycrow.ca/projects/games/flyaway/source.zip"
+      data-main="src/main.rs">
+      <div class="source-browser__toolbar">
+        <span class="source-browser__path" data-path>source.zip</span>
+        <div class="source-browser__actions">
+          <button type="button" class="pm-btn ghost small" data-copy disabled>Copy</button>
+          <a class="pm-btn ghost small" href="https://sillycrow.ca/projects/games/flyaway/source.zip" download>Download .zip</a>
+        </div>
+      </div>
+      <div class="source-browser__body">
+        <nav class="source-browser__tree" data-tree aria-label="Files">
+          <p class="source-browser__note">Loading source…</p>
+        </nav>
+        <div class="source-browser__code" data-code>
+          <noscript><p class="source-browser__note">Enable JavaScript to browse the source, or download the zip.</p></noscript>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="post-footer">
+  </footer>
+</article>
+
+  </main>
+<footer class="footer">
+    <span>2026 Silly Crow Studios</span> ·<span>
+    Powered by
+    <a href="https://www.getzola.org/" rel="noopener" target="_blank">Zola</a> &amp;
+    <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+  </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+    <polyline points="17 11 12 6 7 11"></polyline>
+    <polyline points="17 18 12 13 7 18"></polyline>
+  </svg>
+</a>
+
+<script>
+  (function () {
+    var menu = document.getElementById("menu");
+    if (menu) {
+      try {
+        var pos = localStorage.getItem("menu-scroll-position");
+        if (pos) menu.scrollLeft = parseInt(pos, 10);
+        menu.addEventListener("scroll", function () { localStorage.setItem("menu-scroll-position", menu.scrollLeft); });
+      } catch (e) {}
+    }
+
+    // Team "#" links on the about page copy their link instead (js/team.js)
+    document.querySelectorAll('a[href^="#"]:not(.team .anchor)').forEach(function (anchor) {
+      anchor.addEventListener("click", function (e) {
+        var id = this.getAttribute("href").substr(1);
+        var target = id && document.querySelector("[id='" + decodeURIComponent(id) + "']");
+        if (!target) return;
+        e.preventDefault();
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        target.scrollIntoView(reduce ? undefined : { behavior: "smooth" });
+        if (id === "top") history.replaceState(null, null, " ");
+        else history.pushState(null, null, "#" + id);
+      });
+    });
+    var toplink = document.getElementById("top-link");
+    window.addEventListener("scroll", function () {
+      var t = window.innerHeight;
+      var y = document.body.scrollTop || document.documentElement.scrollTop;
+      toplink.classList.toggle("hidden", y <= t);
+    }, { passive: true });
+    var toggle = document.getElementById("theme-toggle");
+    if (toggle) toggle.addEventListener("click", function () {
+      var html = document.documentElement;
+      var next = html.dataset.theme === "dark" ? "light" : "dark";
+      html.dataset.theme = next;
+      try { localStorage.setItem("pref-theme", next); } catch (e) {}
+      document.dispatchEvent(new CustomEvent("papermod:theme", { detail: next }));
+    });
+  })();
+</script>
+<script>
+  document.querySelectorAll(".post-content pre > code").forEach(function (codeblock) {
+    var pre = codeblock.parentNode;
+    var button = document.createElement("button");
+    button.classList.add("copy-code");
+    button.type = "button";
+    button.textContent = "copy";
+    function done() {
+      button.textContent = "copied!";
+      setTimeout(function () { button.textContent = "copy"; }, 2000);
+    }
+    button.addEventListener("click", function () {
+      var text = codeblock.innerText;
+      if (navigator.clipboard) { navigator.clipboard.writeText(text).then(done); return; }
+      var range = document.createRange();
+      range.selectNodeContents(codeblock);
+      var sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(range);
+      try { document.execCommand("copy"); done(); } catch (e) {}
+      sel.removeRange(range);
+    });
+    pre.appendChild(button);
+  });
+</script>
+
+<script src="https://sillycrow.ca/js/restart-audio-context.js"></script>
+<script type="module" src="https://sillycrow.ca/js/project-runner.js"></script>
+<link rel="stylesheet" href="https://sillycrow.ca/vendor/highlight-github-dark.min.css">
+<script src="https://sillycrow.ca/vendor/jszip.min.js" defer></script>
+<script src="https://sillycrow.ca/vendor/highlight.min.js" defer></script>
+<script src="https://sillycrow.ca/js/source-viewer.js" defer></script>
+
+  </body>
+</html>
